@@ -5,14 +5,14 @@ import {
   Utensils, Droplets, Coffee, GlassWater, Bed, Smile, ThermometerSun, ThermometerSnowflake, AlertCircle, ShowerHead, Bath, Sparkles, CupSoda,
   Mic, Square, Play, Upload, HeartHandshake, Camera, Aperture, X,
   Heart, Users, Lightbulb, Tv, Music, Gamepad2, Stethoscope, Pill, Syringe, Siren, ThumbsUp, ThumbsDown, Clock, XOctagon, Fan, Sun, Moon,
-  Phone, BookOpen, Armchair, Eye, MousePointer2, Timer
+  Phone, BookOpen, Armchair, Eye, MousePointer2, Timer, ChevronDown, ChevronRight
 } from 'lucide-react';
 import DwellButton from './components/DwellButton';
 import Keyboard from './components/Keyboard';
 import HistoryLog from './components/HistoryLog';
 import { InteractionProvider, useInteraction } from './context/InteractionContext';
 import { Language, ScreenMode, ChatMessage, ServiceItem, UserProfile, InteractionMode, Gender } from './types';
-import { SERVICE_TREES, VOICE_CLONE_SCRIPTS, TRANSLATIONS, DWELL_TIME_MS as DEFAULT_DWELL_MS, DEFAULT_ELEVEN_LABS_VOICES } from './constants'; 
+import { SERVICE_TREES, VOICE_CLONE_SCRIPTS, TRANSLATIONS, DWELL_TIME_MS as DEFAULT_DWELL_MS, DEFAULT_ELEVEN_LABS_VOICES, ELEVEN_LABS_VOICE_NAMES } from './constants'; 
 import { getPredictions, getSmartReplies, getVisualSuggestions } from './services/predictionService';
 import { speakText, getAvailableVoices, getVoicesForLanguage } from './services/ttsService';
 import { 
@@ -103,6 +103,7 @@ const AppContent: React.FC = () => {
   
   // Settings Temporary State
   const [elVoiceId, setElVoiceId] = useState('');
+  const [showAdvancedVoice, setShowAdvancedVoice] = useState(false);
   
   // Voice Recording State
   const [isRecording, setIsRecording] = useState(false);
@@ -629,12 +630,23 @@ const AppContent: React.FC = () => {
   
   const handleVoiceChange = async (voiceURI: string) => {
     if (!currentUser) return;
-    const updatedUser = {
+    
+    // Clear ElevenLabs ID to ensure browser voice is used as fallback
+    const updatedUser: UserProfile = {
       ...currentUser,
-      settings: { ...currentUser.settings, voiceURI }
+      settings: { 
+        ...currentUser.settings, 
+        voiceURI,
+        elevenLabs: {
+            ...currentUser.settings.elevenLabs,
+            voiceId: '' 
+        }
+      }
     };
+    
     await updateUserProfile(updatedUser);
     setCurrentUser(updatedUser);
+    setElVoiceId(''); // Clear local state immediately
     speakText(TRANSLATIONS[language].voiceUpdated, language, updatedUser.settings);
   };
 
@@ -650,6 +662,23 @@ const AppContent: React.FC = () => {
     await updateUserProfile(updatedUser);
     setCurrentUser(updatedUser);
     speakText(TRANSLATIONS[language].elevenLabsConnected, language, updatedUser.settings);
+  };
+
+  const handlePresetSelect = async (g: Gender) => {
+    if (!currentUser) return;
+    const voiceId = DEFAULT_ELEVEN_LABS_VOICES[language][g];
+    const updatedUser = {
+        ...currentUser,
+        gender: g,
+        settings: {
+            ...currentUser.settings,
+            elevenLabs: { voiceId }
+        }
+    };
+    await updateUserProfile(updatedUser);
+    setCurrentUser(updatedUser);
+    setElVoiceId(voiceId);
+    speakText(TRANSLATIONS[language].voiceUpdated, language, updatedUser.settings);
   };
 
 
@@ -890,7 +919,69 @@ const AppContent: React.FC = () => {
                  </div>
                </div>
                
-               {/* NEW: Voice Cloning Intake */}
+               {/* Voice Banking / ElevenLabs */}
+               <div className="bg-slate-800 p-4 md:p-6 rounded-xl border border-slate-700 border-l-4 border-l-sky-500">
+                 <h3 className="text-xl md:text-2xl font-bold text-sky-400 mb-2 md:mb-4 flex items-center gap-2"><Cloud /> {TRANSLATIONS[language].existingVoiceId}</h3>
+                 <p className="mb-4 text-slate-300 text-sm md:text-base leading-relaxed">
+                   {TRANSLATIONS[language].existingVoiceDesc}
+                 </p>
+                 
+                 {/* Easy Preset Selection */}
+                 <div className="grid grid-cols-2 gap-4 mb-6">
+                    <DwellButton 
+                        onClick={() => handlePresetSelect('male')} 
+                        active={currentUser?.gender === 'male' && elVoiceId === DEFAULT_ELEVEN_LABS_VOICES[language]['male']}
+                        className="h-24 md:h-28 bg-sky-900/50 border-sky-700/50"
+                    >
+                        <div className="flex flex-col items-center gap-2">
+                            <span className="text-sm uppercase tracking-wider text-sky-200">{TRANSLATIONS[language].presetMale}</span>
+                            <span className="text-2xl font-bold text-white">{ELEVEN_LABS_VOICE_NAMES[language]['male']}</span>
+                            {currentUser?.gender === 'male' && elVoiceId === DEFAULT_ELEVEN_LABS_VOICES[language]['male'] && <div className="text-xs bg-sky-500 text-black px-2 py-0.5 rounded-full font-bold">{TRANSLATIONS[language].active}</div>}
+                        </div>
+                    </DwellButton>
+
+                    <DwellButton 
+                        onClick={() => handlePresetSelect('female')} 
+                        active={currentUser?.gender === 'female' && elVoiceId === DEFAULT_ELEVEN_LABS_VOICES[language]['female']}
+                        className="h-24 md:h-28 bg-fuchsia-900/50 border-fuchsia-700/50"
+                    >
+                         <div className="flex flex-col items-center gap-2">
+                            <span className="text-sm uppercase tracking-wider text-fuchsia-200">{TRANSLATIONS[language].presetFemale}</span>
+                            <span className="text-2xl font-bold text-white">{ELEVEN_LABS_VOICE_NAMES[language]['female']}</span>
+                            {currentUser?.gender === 'female' && elVoiceId === DEFAULT_ELEVEN_LABS_VOICES[language]['female'] && <div className="text-xs bg-fuchsia-500 text-black px-2 py-0.5 rounded-full font-bold">{TRANSLATIONS[language].active}</div>}
+                        </div>
+                    </DwellButton>
+                 </div>
+
+                 {/* Advanced Manual Entry Toggle */}
+                 <DwellButton onClick={() => setShowAdvancedVoice(!showAdvancedVoice)} className="h-12 w-full bg-slate-700 border-slate-600 mb-4 text-sm">
+                    <div className="flex items-center justify-between px-4">
+                        <span>{TRANSLATIONS[language].customId}</span>
+                        {showAdvancedVoice ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}
+                    </div>
+                 </DwellButton>
+                 
+                 {showAdvancedVoice && (
+                    <div className="bg-slate-900 p-4 rounded-lg animate-in fade-in slide-in-from-top-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div className="col-span-2">
+                            <label className="block text-slate-400 text-sm mb-1">{TRANSLATIONS[language].voiceIdLabel}</label>
+                            <input type="text" value={elVoiceId} onChange={(e) => setElVoiceId(e.target.value)} className="w-full bg-slate-950 border border-slate-600 p-3 rounded-lg text-white font-mono" placeholder="e.g. 21m00Tcm4TlvDq8ikWAM" />
+                        </div>
+                        {!hasSystemElevenLabsKey && (
+                            <div className="col-span-2 text-red-400 text-sm italic">
+                                System configuration error: No ElevenLabs API Key found.
+                            </div>
+                        )}
+                        </div>
+                        <DwellButton onClick={handleElevenLabsSave} disabled={!hasSystemElevenLabsKey} className="h-14 md:h-16 bg-sky-900 border-sky-700 hover:bg-sky-800 font-bold w-full">
+                        <div className="flex items-center justify-center gap-2"><Save /> {TRANSLATIONS[language].saveActivate}</div>
+                        </DwellButton>
+                    </div>
+                 )}
+               </div>
+               
+               {/* Voice Cloning Intake */}
                <div className="bg-slate-800 p-4 md:p-6 rounded-xl border border-slate-700 border-l-4 border-l-indigo-500">
                  <h3 className="text-xl md:text-2xl font-bold text-indigo-400 mb-2 md:mb-4 flex items-center gap-2"><Mic /> {TRANSLATIONS[language].voiceCloningIntake}</h3>
                  
@@ -956,35 +1047,18 @@ const AppContent: React.FC = () => {
                  )}
                </div>
 
-               {/* Voice Banking / ElevenLabs */}
-               <div className="bg-slate-800 p-4 md:p-6 rounded-xl border border-slate-700 border-l-4 border-l-sky-500">
-                 <h3 className="text-xl md:text-2xl font-bold text-sky-400 mb-2 md:mb-4 flex items-center gap-2"><Cloud /> {TRANSLATIONS[language].existingVoiceId}</h3>
-                 <p className="mb-4 text-slate-300 text-sm md:text-base leading-relaxed">
-                   {TRANSLATIONS[language].existingVoiceDesc}
-                 </p>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                   <div className="col-span-2">
-                      <label className="block text-slate-400 text-sm mb-1">{TRANSLATIONS[language].voiceIdLabel}</label>
-                      <input type="text" value={elVoiceId} onChange={(e) => setElVoiceId(e.target.value)} className="w-full bg-slate-900 border border-slate-600 p-3 rounded-lg text-white font-mono" placeholder="e.g. 21m00Tcm4TlvDq8ikWAM" />
-                   </div>
-                   {!hasSystemElevenLabsKey && (
-                     <div className="col-span-2 text-red-400 text-sm italic">
-                        System configuration error: No ElevenLabs API Key found.
-                     </div>
-                   )}
-                 </div>
-                 <DwellButton onClick={handleElevenLabsSave} disabled={!hasSystemElevenLabsKey} className="h-14 md:h-16 bg-sky-900 border-sky-700 hover:bg-sky-800 font-bold">
-                   <div className="flex items-center justify-center gap-2"><Save /> {TRANSLATIONS[language].saveActivate}</div>
-                 </DwellButton>
-               </div>
-
                <div className="bg-slate-800 p-4 md:p-6 rounded-xl border border-slate-700">
                  <h3 className="text-xl md:text-2xl font-bold text-brand-400 mb-2 md:mb-4 flex items-center gap-2"><Volume2 /> {TRANSLATIONS[language].standardVoices}</h3>
                  <p className="mb-4 text-slate-400 text-xs md:text-sm">{TRANSLATIONS[language].backupVoicesDesc}</p>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                    {getVoicesForLanguage(language)
                     .map(v => (
-                     <DwellButton key={v.voiceURI} onClick={() => handleVoiceChange(v.voiceURI)} active={currentUser?.settings.voiceURI === v.voiceURI} className="h-14 md:h-16 text-lg">
+                     <DwellButton 
+                        key={v.voiceURI} 
+                        onClick={() => handleVoiceChange(v.voiceURI)} 
+                        active={!currentUser?.settings.elevenLabs?.voiceId && currentUser?.settings.voiceURI === v.voiceURI} 
+                        className="h-14 md:h-16 text-lg"
+                     >
                         {v.name}
                       </DwellButton>
                    ))}
