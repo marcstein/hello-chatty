@@ -52,6 +52,7 @@ export interface UserSettings {
   elevenLabs?: ElevenLabsSettings; // External high-quality voice
   voiceClone?: VoiceCloneRequest; // Voice cloning request status
   interactionMode?: InteractionMode;
+  dwellTimeMs?: number; // Custom dwell time for eye tracking
 }
 
 export interface UserProfile {

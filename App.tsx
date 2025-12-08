@@ -4,14 +4,14 @@ import {
   Utensils, Droplets, Coffee, GlassWater, Bed, Smile, ThermometerSun, ThermometerSnowflake, AlertCircle, ShowerHead, Bath, Sparkles, CupSoda,
   Mic, Square, Play, Upload, HeartHandshake, Camera, Aperture, X,
   Heart, Users, Lightbulb, Tv, Music, Gamepad2, Stethoscope, Pill, Syringe, Siren, ThumbsUp, ThumbsDown, Clock, XOctagon, Fan, Sun, Moon,
-  Phone, BookOpen, Armchair, Eye, MousePointer2
+  Phone, BookOpen, Armchair, Eye, MousePointer2, Timer
 } from 'lucide-react';
 import DwellButton from './components/DwellButton';
 import Keyboard from './components/Keyboard';
 import HistoryLog from './components/HistoryLog';
 import { InteractionProvider, useInteraction } from './context/InteractionContext';
 import { Language, ScreenMode, ChatMessage, ServiceItem, UserProfile, InteractionMode } from './types';
-import { SERVICE_TREES, VOICE_CLONE_SCRIPTS, TRANSLATIONS } from './constants'; 
+import { SERVICE_TREES, VOICE_CLONE_SCRIPTS, TRANSLATIONS, DWELL_TIME_MS as DEFAULT_DWELL_MS } from './constants'; 
 import { getPredictions, getSmartReplies, getVisualSuggestions } from './services/predictionService';
 import { speakText, getAvailableVoices, getVoicesForLanguage } from './services/ttsService';
 import { 
@@ -97,7 +97,7 @@ const AppContent: React.FC = () => {
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   
   // Interaction Context
-  const { mode: interactionMode, setMode: setInteractionMode } = useInteraction();
+  const { mode: interactionMode, setMode: setInteractionMode, dwellTimeMs, setDwellTimeMs } = useInteraction();
   
   // Settings Temporary State
   const [elVoiceId, setElVoiceId] = useState('');
@@ -160,9 +160,14 @@ const AppContent: React.FC = () => {
       setInteractionMode(currentUser.settings.interactionMode);
     } else {
         // Fallback: If no user preference, sync with detected environment
-        // This handles cases where a user logs in on a new device type
         const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         setInteractionMode(isTouch ? 'CLICK' : 'DWELL');
+    }
+    // Set Dwell Time if saved
+    if (currentUser?.settings?.dwellTimeMs) {
+      setDwellTimeMs(currentUser.settings.dwellTimeMs);
+    } else {
+      setDwellTimeMs(DEFAULT_DWELL_MS);
     }
 
     // Reset recording state when user changes
@@ -414,8 +419,6 @@ const AppContent: React.FC = () => {
         // 3. Get Predictions from Gemini Vision
         const visualPreds = await getVisualSuggestions(base64, language);
         setPredictions(visualPreds);
-        // Optional: Speak feedback
-        // speakText("I see...", language);
     } catch (e) {
         console.error("Vision error", e);
         alert("Could not analyze image.");
@@ -579,6 +582,18 @@ const AppContent: React.FC = () => {
       ...currentUser,
       settings: { ...currentUser.settings, interactionMode: newMode }
     };
+    await updateUserProfile(updatedUser);
+    setCurrentUser(updatedUser);
+  };
+
+  const handleDwellTimeChange = async (ms: number) => {
+    setDwellTimeMs(ms);
+    if (!currentUser) return;
+    const updatedUser = {
+      ...currentUser,
+      settings: { ...currentUser.settings, dwellTimeMs: ms }
+    };
+    // Debounce this in a real app, but for now simple update
     await updateUserProfile(updatedUser);
     setCurrentUser(updatedUser);
   };
@@ -786,7 +801,7 @@ const AppContent: React.FC = () => {
                  {/* Interaction Mode Toggle */}
                  <div className="mt-4 pt-4 border-t border-slate-700">
                     <h4 className="text-lg font-bold text-slate-300 mb-2">Interaction Mode</h4>
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 mb-4">
                         <DwellButton 
                             onClick={() => handleModeChange('DWELL')} 
                             active={interactionMode === 'DWELL'}
@@ -802,6 +817,33 @@ const AppContent: React.FC = () => {
                              <div className="flex items-center gap-2"><MousePointer2 className="w-5 h-5" /> Mouse Mode</div>
                         </DwellButton>
                     </div>
+
+                    {/* Dwell Time Slider */}
+                    {interactionMode === 'DWELL' && (
+                      <div className="bg-slate-900/50 p-4 rounded-lg">
+                        <div className="flex justify-between items-center mb-2">
+                          <h5 className="text-slate-300 font-semibold flex items-center gap-2"><Timer size={16}/> Dwell Speed</h5>
+                          <span className="text-brand-400 font-mono font-bold">{dwellTimeMs}ms</span>
+                        </div>
+                        <div className="flex gap-2">
+                           <DwellButton onClick={() => handleDwellTimeChange(Math.max(200, dwellTimeMs - 100))} className="h-10 w-16 bg-slate-700">-</DwellButton>
+                           <input 
+                             type="range" 
+                             min="200" 
+                             max="2000" 
+                             step="100" 
+                             value={dwellTimeMs} 
+                             onChange={(e) => handleDwellTimeChange(Number(e.target.value))}
+                             className="flex-1 accent-brand-500 h-10"
+                           />
+                           <DwellButton onClick={() => handleDwellTimeChange(Math.min(2000, dwellTimeMs + 100))} className="h-10 w-16 bg-slate-700">+</DwellButton>
+                        </div>
+                        <div className="flex justify-between text-xs text-slate-500 mt-1">
+                          <span>Fast (200ms)</span>
+                          <span>Slow (2000ms)</span>
+                        </div>
+                      </div>
+                    )}
                  </div>
                </div>
                

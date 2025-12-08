@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { DWELL_TIME_MS } from '../constants';
 import { useInteraction } from '../context/InteractionContext';
 
 interface DwellButtonProps {
@@ -19,7 +18,7 @@ const DwellButton: React.FC<DwellButtonProps> = ({
 }) => {
   const [isDwelling, setIsDwelling] = useState(false);
   const clickTriggeredRef = useRef(false);
-  const { mode } = useInteraction();
+  const { mode, dwellTimeMs } = useInteraction();
 
   const handleEnter = () => {
     if (disabled || mode === 'CLICK') return;
@@ -73,7 +72,7 @@ const DwellButton: React.FC<DwellButtonProps> = ({
              className="absolute bottom-0 left-0 w-full bg-brand-500/40 pointer-events-none"
              style={{
                height: '0%',
-               animation: `dwellVerticalFill ${DWELL_TIME_MS}ms linear forwards`
+               animation: `dwellVerticalFill ${dwellTimeMs}ms linear forwards`
              }}
              onAnimationEnd={handleAnimationEnd}
            />
