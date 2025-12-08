@@ -3,6 +3,13 @@ import { Language, UserSettings } from '../types';
 // Use the environment variable injected by Vite
 const ENV_ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || '';
 
+// Voices to exclude (Novelty/Low Quality)
+const EXCLUDED_VOICES = [
+  "Albert", "Bad News", "Bahh", "Bells", "Boing", "Bubbles", "Cellos", 
+  "Deranged", "Good News", "Hysterical", "Junior", "Kathy", "Pipe Organ", 
+  "Princess", "Ralph", "Trinoids", "Vicki", "Victoria", "Whisper", "Zarvox"
+];
+
 let currentAudio: HTMLAudioElement | null = null;
 
 export const speakText = async (text: string, language: Language, settings?: UserSettings) => {
@@ -80,7 +87,11 @@ export const getVoicesForLanguage = (language: Language): SpeechSynthesisVoice[]
     case Language.SPANISH: langPrefix = 'es'; break;
   }
   
-  return voices.filter(v => v.lang.toLowerCase().startsWith(langPrefix));
+  return voices.filter(v => {
+    const isLangMatch = v.lang.toLowerCase().startsWith(langPrefix);
+    const isExcluded = EXCLUDED_VOICES.some(excluded => v.name.includes(excluded));
+    return isLangMatch && !isExcluded;
+  });
 };
 
 const speakWithBrowser = (text: string, language: Language, voiceURI?: string) => {
