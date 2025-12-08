@@ -1,6 +1,26 @@
-import { Language, ServiceItem } from './types';
+
+import { Language, ServiceItem, Gender } from './types';
 
 export const DWELL_TIME_MS = 800; // Time in ms to trigger a click
+
+export const DEFAULT_ELEVEN_LABS_VOICES: Record<Language, Record<Gender, string>> = {
+  [Language.ENGLISH]: {
+    male: 'pwMBn0SsmN1220Aorv15',    // Matt
+    female: '0WKkG7JmcKK7MkwhnMIe'   // Sabrina
+  },
+  [Language.JAPANESE]: {
+    male: '3JDquces8E8bkmvbh6Bc',    // Otani
+    female: 'GxhGYQesaQaYKePCZDEC'   // Chii-chan
+  },
+  [Language.FRENCH]: {
+    male: 'BVBq6HVJVdnwOMJOqvy9',    // Nova
+    female: 'DOqLhiOMs8JmafdomNTP'   // Cecile
+  },
+  [Language.SPANISH]: {
+    male: 'YExhVa4bZONzeingloMX',    // Juan Carlos
+    female: '3ttovAt5bt3Kk38UGIob'   // Alma
+  }
+};
 
 // Keyboards
 export const KEYBOARD_LAYOUTS = {

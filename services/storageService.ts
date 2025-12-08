@@ -1,6 +1,7 @@
+
 import { createClient } from '@supabase/supabase-js';
-import { UserProfile, Language } from '../types';
-import { SERVICE_TREES } from '../constants';
+import { UserProfile, Language, Gender } from '../types';
+import { SERVICE_TREES, DEFAULT_ELEVEN_LABS_VOICES } from '../constants';
 
 // --- CONFIGURATION ---
 // These are now injected via Vite at build time
@@ -149,14 +150,25 @@ export const loginUser = async (email: string, password: string): Promise<UserPr
     }
 };
 
-export const createNewUser = async (email: string, name: string, password: string, language: Language = Language.ENGLISH): Promise<UserProfile> => {
+export const createNewUser = async (email: string, name: string, password: string, language: Language = Language.ENGLISH, gender?: Gender): Promise<UserProfile> => {
+  
+  // Set default voice based on gender and language
+  let defaultVoiceId = '';
+  if (gender) {
+    defaultVoiceId = DEFAULT_ELEVEN_LABS_VOICES[language][gender] || '';
+  }
+
   const newUser: UserProfile = {
     id: Date.now().toString(),
     email: email.trim().toLowerCase(),
     name: name.trim(),
     password: password.trim(),
+    gender: gender,
     settings: {
-      language: language
+      language: language,
+      elevenLabs: {
+        voiceId: defaultVoiceId
+      }
     },
     serviceTrees: JSON.parse(JSON.stringify(SERVICE_TREES)), 
     createdAt: Date.now()

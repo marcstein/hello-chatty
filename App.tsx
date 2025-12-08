@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   ArrowLeft, MessageSquare, Menu, Volume2, Trash2, Settings, Plus, User, LogOut, Save, Cloud, Key, Loader2, Lock, Unlock, RefreshCw, Mail,
@@ -10,8 +11,8 @@ import DwellButton from './components/DwellButton';
 import Keyboard from './components/Keyboard';
 import HistoryLog from './components/HistoryLog';
 import { InteractionProvider, useInteraction } from './context/InteractionContext';
-import { Language, ScreenMode, ChatMessage, ServiceItem, UserProfile, InteractionMode } from './types';
-import { SERVICE_TREES, VOICE_CLONE_SCRIPTS, TRANSLATIONS, DWELL_TIME_MS as DEFAULT_DWELL_MS } from './constants'; 
+import { Language, ScreenMode, ChatMessage, ServiceItem, UserProfile, InteractionMode, Gender } from './types';
+import { SERVICE_TREES, VOICE_CLONE_SCRIPTS, TRANSLATIONS, DWELL_TIME_MS as DEFAULT_DWELL_MS, DEFAULT_ELEVEN_LABS_VOICES } from './constants'; 
 import { getPredictions, getSmartReplies, getVisualSuggestions } from './services/predictionService';
 import { speakText, getAvailableVoices, getVoicesForLanguage } from './services/ttsService';
 import { 
@@ -87,6 +88,7 @@ const AppContent: React.FC = () => {
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authName, setAuthName] = useState('');
+  const [authGender, setAuthGender] = useState<Gender | ''>('');
 
   // --- App State (User Context) ---
   const [mode, setMode] = useState<ScreenMode>(ScreenMode.KEYBOARD);
@@ -175,6 +177,32 @@ const AppContent: React.FC = () => {
     setRecordingUrl(null);
   }, [currentUser]);
 
+  // Handle automatic voice switching when language changes (if user has gender set)
+  useEffect(() => {
+    if (currentUser && currentUser.gender) {
+        const correctVoiceForLang = DEFAULT_ELEVEN_LABS_VOICES[language][currentUser.gender];
+        
+        // Only update if the voice is actually different and the user hasn't set a custom one
+        // (We assume if they are using one of the default voices, we can switch them.
+        // If they have a totally unique ID, we might leave it alone, but for now we enforce language matching)
+        if (correctVoiceForLang && correctVoiceForLang !== currentUser.settings.elevenLabs?.voiceId) {
+            const updatedUser = {
+                ...currentUser,
+                settings: {
+                    ...currentUser.settings,
+                    elevenLabs: {
+                        ...currentUser.settings.elevenLabs,
+                        voiceId: correctVoiceForLang
+                    }
+                }
+            };
+            setCurrentUser(updatedUser);
+            // We update state immediately for UI, and fire background save
+            updateUserProfile(updatedUser).catch(e => console.error("Failed to auto-save voice switch", e));
+        }
+    }
+  }, [language, currentUser]);
+
   // Reset service navigation when language changes
   useEffect(() => {
     setCurrentServicePath([]);
@@ -213,6 +241,7 @@ const AppContent: React.FC = () => {
     setAuthEmail('');
     setAuthPassword('');
     setAuthName('');
+    setAuthGender('');
     setMode(ScreenMode.SERVICES); // Set default mode to Services
     setHistory([]); 
     setCurrentServicePath([]); 
@@ -237,14 +266,14 @@ const AppContent: React.FC = () => {
   };
 
   const handleSignupSubmit = async () => {
-    if (!authEmail || !authPassword || !authName) {
-        alert("Please fill in all fields.");
+    if (!authEmail || !authPassword || !authName || !authGender) {
+        alert("Please fill in all fields including gender.");
         return;
     }
     setIsProcessingAuth(true);
     try {
-      // Pass the currently detected language to the new user creation
-      const user = await createNewUser(authEmail, authName, authPassword, language); 
+      // Pass the currently detected language AND gender to the new user creation
+      const user = await createNewUser(authEmail, authName, authPassword, language, authGender); 
       completeLogin(user);
     } catch (e: any) {
       console.error("Creation failed", e);
@@ -636,7 +665,7 @@ const AppContent: React.FC = () => {
 
   if (isLoginMode) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-900 text-white p-4 md:p-8">
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-900 text-white p-4 md:p-8 overflow-y-auto">
         {authView === 'LANDING' && (
           <div className="flex flex-col items-center gap-8 md:gap-12 w-full max-w-4xl">
              <div className="flex flex-col items-center gap-4 text-center">
@@ -667,10 +696,23 @@ const AppContent: React.FC = () => {
               <h2 className="text-2xl md:text-3xl font-bold text-center text-white mb-2 md:mb-4">{authView === 'LOGIN' ? 'Welcome Back' : 'Create Account'}</h2>
               <div className="space-y-4">
                 {authView === 'SIGNUP' && (
+                  <>
                   <div>
                     <label className="block text-slate-400 mb-1 ml-1 text-sm">Display Name</label>
                     <div className="relative"><input type="text" className="w-full bg-slate-950 border border-slate-600 rounded-lg p-3 md:p-4 pl-12 text-lg md:text-xl text-white focus:border-brand-500 outline-none" placeholder="e.g. John" value={authName} onChange={(e) => setAuthName(e.target.value)} /><User className="absolute left-4 top-4 md:top-5 text-slate-500" size={20} /></div>
                   </div>
+                  <div>
+                    <label className="block text-slate-400 mb-1 ml-1 text-sm">Select Gender</label>
+                    <div className="flex gap-4">
+                        <DwellButton onClick={() => setAuthGender('male')} active={authGender === 'male'} className="h-16 flex-1 text-lg font-bold bg-slate-900 border-slate-600">
+                           Male
+                        </DwellButton>
+                        <DwellButton onClick={() => setAuthGender('female')} active={authGender === 'female'} className="h-16 flex-1 text-lg font-bold bg-slate-900 border-slate-600">
+                           Female
+                        </DwellButton>
+                    </div>
+                  </div>
+                  </>
                 )}
                 <div>
                     <label className="block text-slate-400 mb-1 ml-1 text-sm">Email Address</label>
@@ -797,6 +839,7 @@ const AppContent: React.FC = () => {
                     </DwellButton>
                  </div>
                  <p className="text-lg md:text-xl">{TRANSLATIONS[language].loggedInAs} <span className="font-bold text-white">{currentUser?.name}</span></p>
+                 {currentUser?.gender && <p className="text-sm text-slate-400">Gender: {currentUser.gender}</p>}
                  
                  {/* Interaction Mode Toggle */}
                  <div className="mt-4 pt-4 border-t border-slate-700">

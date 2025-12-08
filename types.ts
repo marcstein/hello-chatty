@@ -1,3 +1,4 @@
+
 export enum Language {
   ENGLISH = 'en',
   JAPANESE = 'ja',
@@ -12,6 +13,8 @@ export enum ScreenMode {
 }
 
 export type InteractionMode = 'DWELL' | 'CLICK';
+
+export type Gender = 'male' | 'female';
 
 export interface ServiceItem {
   id: string;
@@ -60,6 +63,7 @@ export interface UserProfile {
   email: string;
   name: string;
   password: string; 
+  gender?: Gender;
   settings: UserSettings;
   // We store the full service tree per language for the user
   // This allows them to have custom buttons in specific languages
