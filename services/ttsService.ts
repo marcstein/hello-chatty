@@ -3,11 +3,18 @@ import { Language, UserSettings } from '../types';
 // Use the environment variable injected by Vite
 const ENV_ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || '';
 
-// Voices to exclude (Novelty/Low Quality)
+// Voices to exclude (Novelty/Low Quality/Characters)
 const EXCLUDED_VOICES = [
-  "Albert", "Bad News", "Bahh", "Bells", "Boing", "Bubbles", "Cellos", 
-  "Deranged", "Good News", "Hysterical", "Junior", "Kathy", "Pipe Organ", 
-  "Princess", "Ralph", "Trinoids", "Vicki", "Victoria", "Whisper", "Zarvox"
+  // Novelty / Sound Effects
+  "Bad News", "Bahh", "Bells", "Boing", "Bubbles", "Cellos", 
+  "Deranged", "Good News", "Hysterical", "Pipe Organ", "Organ", 
+  "Trinoids", "Whisper", "Zarvox", "Jester", "Wobble",
+  
+  // Characters / Low Quality / Legacy
+  "Albert", "Fred", "Junior", "Kathy", "Princess", "Ralph", 
+  "Vicki", "Victoria", "Grandma", "Grandpa", "Rocko", 
+  "Shelley", "Superstar", "Eddy", "Flo", "Reed", "Sandy",
+  "Majestic"
 ];
 
 let currentAudio: HTMLAudioElement | null = null;
@@ -76,16 +83,19 @@ const speakWithElevenLabs = async (text: string, voiceId: string, apiKey: string
   };
 };
 
+const getLangPrefix = (language: Language) => {
+  switch (language) {
+    case Language.JAPANESE: return 'ja';
+    case Language.FRENCH: return 'fr';
+    case Language.SPANISH: return 'es';
+    default: return 'en';
+  }
+};
+
 export const getVoicesForLanguage = (language: Language): SpeechSynthesisVoice[] => {
   if (!('speechSynthesis' in window)) return [];
   const voices = window.speechSynthesis.getVoices();
-  
-  let langPrefix = 'en';
-  switch (language) {
-    case Language.JAPANESE: langPrefix = 'ja'; break;
-    case Language.FRENCH: langPrefix = 'fr'; break;
-    case Language.SPANISH: langPrefix = 'es'; break;
-  }
+  const langPrefix = getLangPrefix(language);
   
   return voices.filter(v => {
     const isLangMatch = v.lang.toLowerCase().startsWith(langPrefix);
@@ -101,25 +111,23 @@ const speakWithBrowser = (text: string, language: Language, voiceURI?: string) =
   }
 
   const utterance = new SpeechSynthesisUtterance(text);
-  
-  // Map our language enum to generic language prefixes
-  let langPrefix = 'en';
-  switch (language) {
-    case Language.JAPANESE: langPrefix = 'ja'; break;
-    case Language.FRENCH: langPrefix = 'fr'; break;
-    case Language.SPANISH: langPrefix = 'es'; break;
-  }
+  const langPrefix = getLangPrefix(language);
   utterance.lang = langPrefix;
 
   const voices = window.speechSynthesis.getVoices();
   let voice: SpeechSynthesisVoice | undefined;
 
   // 1. Try to find the user's specific preferred voice
+  // IMPORTANT: Verify the preferred voice matches the requested language to prevent accents/gibberish
   if (voiceURI) {
-    voice = voices.find(v => v.voiceURI === voiceURI);
+    const preferredVoice = voices.find(v => v.voiceURI === voiceURI);
+    // Only use if it matches the requested language
+    if (preferredVoice && preferredVoice.lang.toLowerCase().startsWith(langPrefix)) {
+      voice = preferredVoice;
+    }
   }
 
-  // 2. Fallback to high-quality
+  // 2. Fallback to high-quality default for the language if no valid preference found
   if (!voice) {
     const langVoices = getVoicesForLanguage(language);
     voice = langVoices.find(v => v.name.includes('Google') || v.name.includes('Premium')) || 

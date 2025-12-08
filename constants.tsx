@@ -1,11 +1,12 @@
 
+
 import { Language, ServiceItem, Gender } from './types';
 
 export const DWELL_TIME_MS = 800; // Time in ms to trigger a click
 
 export const DEFAULT_ELEVEN_LABS_VOICES: Record<Language, Record<Gender, string>> = {
   [Language.ENGLISH]: {
-    male: 'pwMBn0SsmN1220Aorv15',    // Matt
+    male: 'xKhbyU7E3bC6T89Kn26c',    // Adam Spencer
     female: '0WKkG7JmcKK7MkwhnMIe'   // Sabrina
   },
   [Language.JAPANESE]: {
@@ -20,6 +21,13 @@ export const DEFAULT_ELEVEN_LABS_VOICES: Record<Language, Record<Gender, string>
     male: 'YExhVa4bZONzeingloMX',    // Juan Carlos
     female: '3ttovAt5bt3Kk38UGIob'   // Alma
   }
+};
+
+export const ELEVEN_LABS_VOICE_NAMES: Record<Language, Record<Gender, string>> = {
+  [Language.ENGLISH]: { male: 'Adam', female: 'Sabrina' },
+  [Language.JAPANESE]: { male: 'Otani', female: 'Chii-chan' },
+  [Language.FRENCH]: { male: 'Nova', female: 'Cecile' },
+  [Language.SPANISH]: { male: 'Juan Carlos', female: 'Alma' }
 };
 
 // Keyboards
@@ -89,10 +97,10 @@ export const TRANSLATIONS = {
     play: "Play",
     retake: "Retake",
     submitRequest: "Submit Request",
-    existingVoiceId: "Existing Voice ID",
-    existingVoiceDesc: "If you already have a Voice ID from ElevenLabs, enter it here.",
-    voiceIdLabel: "Voice ID",
-    saveActivate: "Save & Activate",
+    existingVoiceId: "Cloud Voice Settings",
+    existingVoiceDesc: "Choose a high-quality preset or enter a custom Voice ID.",
+    voiceIdLabel: "Custom Voice ID",
+    saveActivate: "Save Custom ID",
     standardVoices: "Standard Backup Voices",
     backupVoicesDesc: "Used if custom voice is not configured.",
     addCustomButton: "Add Custom Button",
@@ -107,7 +115,11 @@ export const TRANSLATIONS = {
     buttonAdded: "Button added to all languages!",
     micError: "Microphone access denied.",
     uploadSuccess: "Request sent successfully! Admin has been notified.",
-    uploadFail: "Failed to upload. Please try again."
+    uploadFail: "Failed to upload. Please try again.",
+    presetMale: "Male",
+    presetFemale: "Female",
+    active: "Active",
+    customId: "Custom ID"
   },
   [Language.SPANISH]: {
     speak: "HABLAR",
@@ -133,10 +145,10 @@ export const TRANSLATIONS = {
     play: "Reproducir",
     retake: "Repetir",
     submitRequest: "Enviar Solicitud",
-    existingVoiceId: "ID de Voz Existente",
-    existingVoiceDesc: "Si ya tiene un ID de Voz de ElevenLabs, ingréselo aquí.",
-    voiceIdLabel: "ID de Voz",
-    saveActivate: "Guardar y Activar",
+    existingVoiceId: "Ajustes de Voz en la Nube",
+    existingVoiceDesc: "Elija un preajuste de alta calidad o ingrese un ID de voz personalizado.",
+    voiceIdLabel: "ID de Voz Personalizado",
+    saveActivate: "Guardar ID",
     standardVoices: "Voces de Respaldo Estándar",
     backupVoicesDesc: "Se usa si la voz personalizada no está configurada.",
     addCustomButton: "Añadir Botón Personalizado",
@@ -151,7 +163,11 @@ export const TRANSLATIONS = {
     buttonAdded: "¡Botón añadido a todos los idiomas!",
     micError: "Acceso al micrófono denegado.",
     uploadSuccess: "¡Solicitud enviada! El administrador ha sido notificado.",
-    uploadFail: "Error al subir. Inténtalo de nuevo."
+    uploadFail: "Error al subir. Inténtalo de nuevo.",
+    presetMale: "Masculino",
+    presetFemale: "Femenino",
+    active: "Activo",
+    customId: "ID Personalizado"
   },
   [Language.FRENCH]: {
     speak: "PARLER",
@@ -177,10 +193,10 @@ export const TRANSLATIONS = {
     play: "Lire",
     retake: "Refaire",
     submitRequest: "Soumettre",
-    existingVoiceId: "ID Vocal Existant",
-    existingVoiceDesc: "Si vous avez déjà un ID Vocal d'ElevenLabs, entrez-le ici.",
-    voiceIdLabel: "ID Vocal",
-    saveActivate: "Sauvegarder et Activer",
+    existingVoiceId: "Paramètres Voix Cloud",
+    existingVoiceDesc: "Choisissez un préréglage ou entrez un ID vocal personnalisé.",
+    voiceIdLabel: "ID Vocal Personnalisé",
+    saveActivate: "Sauvegarder ID",
     standardVoices: "Voix de Secours Standard",
     backupVoicesDesc: "Utilisé si la voix personnalisée n'est pas configurée.",
     addCustomButton: "Ajouter un Bouton",
@@ -195,7 +211,11 @@ export const TRANSLATIONS = {
     buttonAdded: "Bouton ajouté à toutes les langues !",
     micError: "Accès micro refusé.",
     uploadSuccess: "Demande envoyée ! L'administrateur a été notifié.",
-    uploadFail: "Échec de l'envoi. Réessayez."
+    uploadFail: "Échec de l'envoi. Réessayez.",
+    presetMale: "Masculin",
+    presetFemale: "Féminin",
+    active: "Actif",
+    customId: "ID Personnalisé"
   },
   [Language.JAPANESE]: {
     speak: "話す",
@@ -221,10 +241,10 @@ export const TRANSLATIONS = {
     play: "再生",
     retake: "撮り直し",
     submitRequest: "リクエスト送信",
-    existingVoiceId: "既存の音声ID",
-    existingVoiceDesc: "ElevenLabsの音声IDをお持ちの場合は、ここに入力してください。",
-    voiceIdLabel: "音声ID",
-    saveActivate: "保存して有効化",
+    existingVoiceId: "クラウド音声設定",
+    existingVoiceDesc: "プリセットを選択するか、カスタム音声IDを入力してください。",
+    voiceIdLabel: "カスタム音声ID",
+    saveActivate: "IDを保存",
     standardVoices: "標準バックアップ音声",
     backupVoicesDesc: "カスタム音声が設定されていない場合に使用されます。",
     addCustomButton: "カスタムボタン追加",
@@ -239,7 +259,11 @@ export const TRANSLATIONS = {
     buttonAdded: "全言語にボタンが追加されました！",
     micError: "マイクへのアクセスが拒否されました。",
     uploadSuccess: "リクエスト送信完了！管理者に通知されました。",
-    uploadFail: "送信に失敗しました。再試行してください。"
+    uploadFail: "送信に失敗しました。再試行してください。",
+    presetMale: "男性",
+    presetFemale: "女性",
+    active: "使用中",
+    customId: "カスタムID"
   }
 };
 
@@ -532,150 +556,7 @@ const COMMON_SPANISH = [
     children: [
       { id: 'tv', label: 'TV', icon: 'tv', speechText: 'Quiero ver televisión.' },
       { id: 'music', label: 'Música', icon: 'music', speechText: 'Quiero escuchar música.' },
-      { id: 'read', label: 'Leer', icon: 'book', speechText: 'Por favor léeme algo.' },
       { id: 'outside', label: 'Afuera', icon: 'sun', speechText: 'Quiero salir afuera.' },
-    ]
-  }
-];
-
-// Japanese Translation
-const COMMON_JAPANESE = [
-  {
-    id: 'quick_res',
-    label: 'クイック',
-    icon: 'message',
-    color: 'bg-slate-600',
-    children: [
-      { id: 'yes', label: 'はい', icon: 'thumbs-up', speechText: 'はい。' },
-      { id: 'no', label: 'いいえ', icon: 'thumbs-down', speechText: 'いいえ。' },
-      { id: 'thanks', label: 'ありがとう', icon: 'smile', speechText: 'ありがとうございます。' },
-      { id: 'wait', label: '待って', icon: 'clock', speechText: '少し待ってください。' },
-      { id: 'stop', label: 'やめて', icon: 'stop', speechText: 'やめてください。' },
-      { id: 'dont_know', label: 'わからない', icon: 'help-circle', speechText: 'わかりません。' },
-    ]
-  },
-  {
-    id: 'emergency',
-    label: '緊急',
-    icon: 'siren',
-    color: 'bg-red-700',
-    children: [
-      { id: 'help', label: '助けて', icon: 'alert-circle', speechText: '助けて！緊急です！' },
-      { id: 'breath', label: '苦しい', icon: 'wind', speechText: '息が苦しいです。' },
-      { id: 'choke', label: '喉詰まり', icon: 'alert-circle', speechText: '喉が詰まっています。' },
-      { id: 'pain_sev', label: '激痛', icon: 'alert-circle', speechText: '激しい痛みがあります。' },
-      { id: 'fall', label: '落ちる', icon: 'alert-circle', speechText: '落ちそうです。' },
-    ]
-  },
-  {
-    id: 'emotions',
-    label: '気持ち',
-    icon: 'heart',
-    color: 'bg-pink-700',
-    children: [
-      { id: 'happy', label: '嬉しい', icon: 'smile', speechText: '嬉しいです。' },
-      { id: 'sad', label: '悲しい', icon: 'frown', speechText: '悲しいです。' },
-      { id: 'scared', label: '怖い', icon: 'alert-circle', speechText: '怖いです。' },
-      { id: 'angry', label: 'イライラ', icon: 'frown', speechText: 'イライラしています。' },
-      { id: 'love', label: '大好き', icon: 'heart', speechText: '大好きです。愛しています。' },
-      { id: 'tired', label: '疲れた', icon: 'moon', speechText: '疲れました。' },
-    ]
-  },
-  {
-    id: 'food_drink',
-    label: '食事・飲み物',
-    icon: 'utensils',
-    color: 'bg-orange-600',
-    children: [
-      { id: 'water', label: '水', icon: 'droplets', speechText: 'お水をください。' },
-      { id: 'tea', label: 'お茶', icon: 'cup-soda', speechText: 'お茶をください。' },
-      { id: 'coffee', label: 'コーヒー', icon: 'coffee', speechText: 'コーヒーを飲みたいです。' },
-      { id: 'rice', label: 'ご飯', icon: 'utensils', speechText: 'ご飯を食べたいです。' },
-      { id: 'miso', label: '味噌汁', icon: 'utensils', speechText: 'お味噌汁が欲しいです。' },
-    ]
-  },
-  {
-    id: 'medical',
-    label: '医療',
-    icon: 'stethoscope',
-    color: 'bg-blue-800',
-    children: [
-      { id: 'doctor', label: '医者', icon: 'users', speechText: 'お医者さんを呼んでください。' },
-      { id: 'nurse', label: '看護師', icon: 'users', speechText: '看護師さんを呼んでください。' },
-      { id: 'meds', label: '薬', icon: 'pill', speechText: '薬の時間です。薬をください。' },
-      { id: 'suction', label: '吸引', icon: 'wind', speechText: '吸引をお願いします。' },
-      { id: 'position', label: '体位交換', icon: 'refresh-cw', speechText: '体の向きを変えるのを手伝ってください。' },
-    ]
-  },
-  {
-    id: 'comfort',
-    label: '体のケア',
-    icon: 'bed',
-    color: 'bg-blue-600',
-    children: [
-      { id: 'posture', label: '体勢変更', icon: 'bed', speechText: '体の向きを変えてください。' },
-      { id: 'hot', label: '暑い', icon: 'thermometer-sun', speechText: '暑いです。' },
-      { id: 'cold', label: '寒い', icon: 'thermometer-snowflake', speechText: '寒いです。' },
-      { 
-          id: 'pain', 
-          label: '痛い', 
-          icon: 'alert-circle', 
-          children: [
-              { id: 'head', label: '頭', icon: 'smile', speechText: '頭が痛いです。' },
-              { id: 'stomach', label: 'お腹', icon: 'user', speechText: 'お腹が痛いです。' },
-              { id: 'chest', label: '胸', icon: 'alert-circle', speechText: '胸が痛いです。' },
-              { id: 'back', label: '背中', icon: 'user', speechText: '背中が痛いです。' },
-              { id: 'arms', label: '腕', icon: 'user', speechText: '腕が痛いです。' },
-              { id: 'legs', label: '足', icon: 'user', speechText: '足が痛いです。' },
-              { id: 'general', label: '全体', icon: 'alert-circle', speechText: '体が痛いです。' }
-          ]
-      },
-    ]
-  },
-  {
-    id: 'hygiene',
-    label: 'トイレ・清潔',
-    icon: 'shower-head',
-    color: 'bg-teal-600',
-    children: [
-      { id: 'toilet', label: 'トイレ', icon: 'bath', speechText: 'トイレに行きたいです。' },
-      { id: 'bath', label: 'お風呂', icon: 'shower-head', speechText: 'お風呂に入りたいです。' },
-      { id: 'face', label: '顔拭き', icon: 'sparkles', speechText: '顔を拭いてください。' },
-    ]
-  },
-  {
-    id: 'people',
-    label: '人',
-    icon: 'users',
-    color: 'bg-purple-700',
-    children: [
-      { id: 'family', label: '家族', icon: 'users', speechText: '家族に会いたいです。' },
-      { id: 'friend', label: '友達', icon: 'user', speechText: '友達に会いたいです。' },
-      { id: 'caregiver', label: '介護者', icon: 'user', speechText: '介護の方はどこですか？' },
-      { id: 'alone', label: '一人に', icon: 'door-closed', speechText: '少し一人にしてください。' },
-    ]
-  },
-  {
-    id: 'environment',
-    label: '環境',
-    icon: 'lightbulb',
-    color: 'bg-green-700',
-    children: [
-      { id: 'lights_on', label: '電気オン', icon: 'sun', speechText: '電気をつけてください。' },
-      { id: 'lights_off', label: '電気オフ', icon: 'moon', speechText: '電気を消してください。' },
-      { id: 'fan', label: '扇風機', icon: 'fan', speechText: '扇風機をつけてください。' },
-      { id: 'window', label: '窓', icon: 'maximize', speechText: '窓を開けてください。' },
-    ]
-  },
-  {
-    id: 'activities',
-    label: '活動',
-    icon: 'gamepad',
-    color: 'bg-indigo-600',
-    children: [
-      { id: 'tv', label: 'テレビ', icon: 'tv', speechText: 'テレビを見たいです。' },
-      { id: 'music', label: '音楽', icon: 'music', speechText: '音楽を聴きたいです。' },
-      { id: 'outside', label: '外へ', icon: 'sun', speechText: '外の空気を吸いたいです。' },
     ]
   }
 ];
@@ -810,13 +691,160 @@ const COMMON_FRENCH = [
   },
   {
     id: 'activities',
-    label: 'Activités',
+    label: 'Activities',
     icon: 'gamepad',
     color: 'bg-indigo-600',
     children: [
       { id: 'tv', label: 'Télé', icon: 'tv', speechText: 'Je veux regarder la télé.' },
       { id: 'music', label: 'Musique', icon: 'music', speechText: 'Je veux écouter de la musique.' },
       { id: 'outside', label: 'Dehors', icon: 'sun', speechText: 'Je veux aller dehors.' },
+    ]
+  }
+];
+
+// Japanese Translation
+const COMMON_JAPANESE = [
+  {
+    id: 'quick_res',
+    label: 'クイックチャット',
+    icon: 'message',
+    color: 'bg-slate-600',
+    children: [
+      { id: 'yes', label: 'はい', icon: 'thumbs-up', speechText: 'はい。' },
+      { id: 'no', label: 'いいえ', icon: 'thumbs-down', speechText: 'いいえ。' },
+      { id: 'thanks', label: 'ありがとう', icon: 'smile', speechText: 'ありがとうございます。' },
+      { id: 'wait', label: '待って', icon: 'clock', speechText: '少し待ってください。' },
+      { id: 'stop', label: '止めて', icon: 'stop', speechText: '止めてください。' },
+      { id: 'dont_know', label: '分からない', icon: 'help-circle', speechText: '分かりません。' },
+    ]
+  },
+  {
+    id: 'emergency',
+    label: '緊急',
+    icon: 'siren',
+    color: 'bg-red-700',
+    children: [
+      { id: 'help', label: '助けて', icon: 'alert-circle', speechText: '助けて！緊急事態です！' },
+      { id: 'breath', label: '息苦しい', icon: 'wind', speechText: '息が苦しいです。' },
+      { id: 'choke', label: '喉詰まり', icon: 'alert-circle', speechText: '喉が詰まっています。' },
+      { id: 'pain_sev', label: '激痛', icon: 'alert-circle', speechText: '激しい痛みがあります。' },
+      { id: 'fall', label: '落ちる', icon: 'alert-circle', speechText: '落ちそうです。' },
+    ]
+  },
+  {
+    id: 'emotions',
+    label: '感情',
+    icon: 'heart',
+    color: 'bg-pink-700',
+    children: [
+      { id: 'happy', label: '嬉しい', icon: 'smile', speechText: '嬉しいです。' },
+      { id: 'sad', label: '悲しい', icon: 'frown', speechText: '悲しいです。' },
+      { id: 'scared', label: '怖い', icon: 'alert-circle', speechText: '怖いです。' },
+      { id: 'angry', label: '不満', icon: 'frown', speechText: '不満を感じています。' },
+      { id: 'love', label: '愛してる', icon: 'heart', speechText: '愛しています。' },
+      { id: 'tired', label: '疲れた', icon: 'moon', speechText: '疲れました。' },
+    ]
+  },
+  {
+    id: 'food_drink',
+    label: '食事・飲み物',
+    icon: 'utensils',
+    color: 'bg-orange-600',
+    children: [
+      { id: 'water', label: '水', icon: 'droplets', speechText: 'お水をください。' },
+      { id: 'coffee', label: 'コーヒー', icon: 'coffee', speechText: 'コーヒーをください。' },
+      { id: 'tea', label: 'お茶', icon: 'cup-soda', speechText: 'お茶をください。' },
+      { id: 'juice', label: 'ジュース', icon: 'glass-water', speechText: 'ジュースをください。' },
+      { id: 'hungry', label: 'お腹空いた', icon: 'utensils', speechText: 'お腹が空きました。何か食べたいです。' },
+      { id: 'full', label: 'お腹いっぱい', icon: 'check', speechText: 'お腹いっぱいです。ごちそうさまでした。' },
+    ]
+  },
+  {
+    id: 'medical',
+    label: '医療',
+    icon: 'stethoscope',
+    color: 'bg-blue-800',
+    children: [
+      { id: 'doctor', label: '医者', icon: 'users', speechText: '医者を呼んでください。' },
+      { id: 'nurse', label: '看護師', icon: 'users', speechText: '看護師を呼んでください。' },
+      { id: 'meds', label: '薬', icon: 'pill', speechText: '薬の時間です。薬をください。' },
+      { id: 'suction', label: '吸引', icon: 'wind', speechText: '吸引をお願いします。' },
+      { id: 'position', label: '体位変換', icon: 'refresh-cw', speechText: '体の向きを変えるのを手伝ってください。' },
+    ]
+  },
+  {
+    id: 'comfort',
+    label: '快適さ',
+    icon: 'bed',
+    color: 'bg-blue-600',
+    children: [
+      { id: 'adjust_bed', label: 'ベッド調整', icon: 'bed', speechText: 'ベッドを調整してください。' },
+      { id: 'pillow', label: '枕', icon: 'smile', speechText: '枕を直してください。' },
+      { id: 'too_hot', label: '暑い', icon: 'thermometer-sun', speechText: '暑すぎます。' },
+      { id: 'too_cold', label: '寒い', icon: 'thermometer-snowflake', speechText: '寒すぎます。' },
+      { 
+        id: 'pain', 
+        label: '痛み', 
+        icon: 'alert-circle',
+        children: [
+          { id: 'head', label: '頭', icon: 'smile', speechText: '頭が痛いです。' },
+          { id: 'stomach', label: 'お腹', icon: 'user', speechText: 'お腹が痛いです。' },
+          { id: 'chest', label: '胸', icon: 'alert-circle', speechText: '胸が痛いです。' },
+          { id: 'back', label: '背中', icon: 'user', speechText: '背中が痛いです。' },
+          { id: 'arms', label: '腕', icon: 'user', speechText: '腕が痛いです。' },
+          { id: 'legs', label: '足', icon: 'user', speechText: '足が痛いです。' },
+          { id: 'general', label: '全体', icon: 'alert-circle', speechText: '痛みがあります。' }
+        ]
+      },
+    ]
+  },
+  {
+    id: 'hygiene',
+    label: '衛生',
+    icon: 'shower-head',
+    color: 'bg-teal-600',
+    children: [
+      { id: 'bathroom', label: 'トイレ', icon: 'bath', speechText: 'トイレに行きたいです。' },
+      { id: 'shower', label: 'シャワー', icon: 'shower-head', speechText: 'シャワーを浴びたいです。' },
+      { id: 'face', label: '顔を洗う', icon: 'sparkles', speechText: '顔を洗いたいです。' },
+      { id: 'teeth', label: '歯磨き', icon: 'smile', speechText: '歯を磨きたいです。' },
+    ]
+  },
+  {
+    id: 'people',
+    label: '人',
+    icon: 'users',
+    color: 'bg-purple-700',
+    children: [
+      { id: 'family', label: '家族', icon: 'users', speechText: '家族に会いたいです。' },
+      { id: 'friend', label: '友達', icon: 'user', speechText: '友達に会いたいです。' },
+      { id: 'caregiver', label: '介護士', icon: 'user', speechText: '担当の介護士はどこですか？' },
+      { id: 'alone', label: 'プライバシー', icon: 'door-closed', speechText: '一人にしてください。プライバシーが必要です。' },
+    ]
+  },
+  {
+    id: 'environment',
+    label: '環境',
+    icon: 'lightbulb',
+    color: 'bg-green-700',
+    children: [
+      { id: 'lights_on', label: '電気オン', icon: 'sun', speechText: '電気をつけてください。' },
+      { id: 'lights_off', label: '電気オフ', icon: 'moon', speechText: '電気を消してください。' },
+      { id: 'fan', label: '扇風機', icon: 'fan', speechText: '扇風機をつけてください。' },
+      { id: 'window', label: '窓', icon: 'maximize', speechText: '窓を開けてください。' },
+      { id: 'door', label: 'ドア', icon: 'door-open', speechText: 'ドアを閉めてください。' },
+    ]
+  },
+  {
+    id: 'activities',
+    label: '活動',
+    icon: 'gamepad',
+    color: 'bg-indigo-600',
+    children: [
+      { id: 'tv', label: 'テレビ', icon: 'tv', speechText: 'テレビが見たいです。' },
+      { id: 'music', label: '音楽', icon: 'music', speechText: '音楽が聴きたいです。' },
+      { id: 'read', label: '読書', icon: 'book', speechText: '本を読んでください。' },
+      { id: 'outside', label: '外へ', icon: 'sun', speechText: '外に行きたいです。' },
     ]
   }
 ];
