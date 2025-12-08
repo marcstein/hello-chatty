@@ -1,0 +1,8 @@
+{
+  "name": "Hello, Chatty 3.0",
+  "description": "An assistive communication interface optimized for eye-tracking devices with dwell interaction, predictive text, and service requests.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}
