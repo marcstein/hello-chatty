@@ -1,5 +1,4 @@
 
-
 import { Language, ServiceItem, Gender } from './types';
 
 export const DWELL_TIME_MS = 800; // Time in ms to trigger a click
@@ -15,7 +14,7 @@ export const DEFAULT_ELEVEN_LABS_VOICES: Record<Language, Record<Gender, string>
   },
   [Language.FRENCH]: {
     male: 'BVBq6HVJVdnwOMJOqvy9',    // Nova
-    female: 'DOqLhiOMs8JmafdomNTP'   // Cecile
+    female: 'XB0fDUnXU5powFXDhCwa'   // Amelie (Charlotte)
   },
   [Language.SPANISH]: {
     male: 'YExhVa4bZONzeingloMX',    // Juan Carlos
@@ -26,7 +25,7 @@ export const DEFAULT_ELEVEN_LABS_VOICES: Record<Language, Record<Gender, string>
 export const ELEVEN_LABS_VOICE_NAMES: Record<Language, Record<Gender, string>> = {
   [Language.ENGLISH]: { male: 'Adam', female: 'Sabrina' },
   [Language.JAPANESE]: { male: 'Otani', female: 'Chii-chan' },
-  [Language.FRENCH]: { male: 'Nova', female: 'Cecile' },
+  [Language.FRENCH]: { male: 'Nova', female: 'Amelie' },
   [Language.SPANISH]: { male: 'Juan Carlos', female: 'Alma' }
 };
 
@@ -550,13 +549,13 @@ const COMMON_SPANISH = [
   },
   {
     id: 'activities',
-    label: 'Actividades',
+    label: 'Activities',
     icon: 'gamepad',
     color: 'bg-indigo-600',
     children: [
-      { id: 'tv', label: 'TV', icon: 'tv', speechText: 'Quiero ver televisión.' },
-      { id: 'music', label: 'Música', icon: 'music', speechText: 'Quiero escuchar música.' },
-      { id: 'outside', label: 'Afuera', icon: 'sun', speechText: 'Quiero salir afuera.' },
+      { id: 'tv', label: 'TV', icon: 'tv', speechText: 'Je veux regarder la télé.' },
+      { id: 'music', label: 'Musique', icon: 'music', speechText: 'Je veux écouter de la musique.' },
+      { id: 'outside', label: 'Dehors', icon: 'sun', speechText: 'Je veux aller dehors.' },
     ]
   }
 ];
@@ -572,8 +571,8 @@ const COMMON_FRENCH = [
       { id: 'yes', label: 'Oui', icon: 'thumbs-up', speechText: 'Oui.' },
       { id: 'no', label: 'Non', icon: 'thumbs-down', speechText: 'Non.' },
       { id: 'thanks', label: 'Merci', icon: 'smile', speechText: 'Merci.' },
-      { id: 'wait', label: 'Attends', icon: 'clock', speechText: 'Attendez un instant s\'il vous plaît.' },
-      { id: 'stop', label: 'Stop', icon: 'stop', speechText: 'Arrêtez s\'il vous plaît.' },
+      { id: 'wait', label: 'Attendez', icon: 'clock', speechText: 'Attendez un moment, s\'il vous plaît.' },
+      { id: 'stop', label: 'Arrêtez', icon: 'stop', speechText: 'Arrêtez, s\'il vous plaît.' },
       { id: 'dont_know', label: 'Je ne sais pas', icon: 'help-circle', speechText: 'Je ne sais pas.' },
     ]
   },
@@ -583,11 +582,11 @@ const COMMON_FRENCH = [
     icon: 'siren',
     color: 'bg-red-700',
     children: [
-      { id: 'help', label: 'AIDEZ-MOI', icon: 'alert-circle', speechText: 'À l\'aide ! J\'ai besoin d\'aide tout de suite !' },
-      { id: 'breath', label: 'Respirer', icon: 'wind', speechText: 'Je n\'arrive pas à bien respirer.' },
-      { id: 'choke', label: 'Étouffer', icon: 'alert-circle', speechText: 'Je m\'étouffe.' },
-      { id: 'pain_sev', label: 'Douleur Intense', icon: 'alert-circle', speechText: 'J\'ai une douleur très intense.' },
-      { id: 'fall', label: 'Tomber', icon: 'alert-circle', speechText: 'Je sens que je tombe.' },
+      { id: 'help', label: 'AIDEZ-MOI', icon: 'alert-circle', speechText: 'Aidez-moi ! J\'ai besoin d\'aide immédiatement !' },
+      { id: 'breath', label: 'Respiration', icon: 'wind', speechText: 'Je ne peux pas respirer correctement.' },
+      { id: 'choke', label: 'Étouffement', icon: 'alert-circle', speechText: 'Je m\'étouffe.' },
+      { id: 'pain_sev', label: 'Douleur Intense', icon: 'alert-circle', speechText: 'Je ressens une douleur intense.' },
+      { id: 'fall', label: 'Chute', icon: 'alert-circle', speechText: 'J\'ai l\'impression de tomber.' },
     ]
   },
   {
@@ -599,22 +598,23 @@ const COMMON_FRENCH = [
       { id: 'happy', label: 'Heureux', icon: 'smile', speechText: 'Je suis heureux.' },
       { id: 'sad', label: 'Triste', icon: 'frown', speechText: 'Je me sens triste.' },
       { id: 'scared', label: 'Peur', icon: 'alert-circle', speechText: 'J\'ai peur.' },
-      { id: 'angry', label: 'Frustré', icon: 'frown', speechText: 'Je suis frustré.' },
+      { id: 'angry', label: 'Frustré', icon: 'frown', speechText: 'Je me sens frustré.' },
       { id: 'love', label: 'Je t\'aime', icon: 'heart', speechText: 'Je t\'aime.' },
       { id: 'tired', label: 'Fatigué', icon: 'moon', speechText: 'Je suis fatigué.' },
     ]
   },
   {
     id: 'food_drink',
-    label: 'Nourriture',
+    label: 'Nourriture & Boissons',
     icon: 'utensils',
     color: 'bg-orange-600',
     children: [
-      { id: 'water', label: 'Eau', icon: 'droplets', speechText: "Je voudrais de l'eau s'il vous plaît." },
-      { id: 'coffee', label: 'Café', icon: 'coffee', speechText: "Je voudrais un café s'il vous plaît." },
-      { id: 'tea', label: 'Thé', icon: 'cup-soda', speechText: "Je voudrais du thé s'il vous plaît." },
-      { id: 'soup', label: 'Soupe', icon: 'utensils', speechText: "Je voudrais de la soupe." },
-      { id: 'hungry', label: 'J\'ai faim', icon: 'utensils', speechText: "J'ai faim." },
+      { id: 'water', label: 'Eau', icon: 'droplets', speechText: 'Je voudrais de l\'eau, s\'il vous plaît.' },
+      { id: 'coffee', label: 'Café', icon: 'coffee', speechText: 'Je voudrais un café, s\'il vous plaît.' },
+      { id: 'tea', label: 'Thé', icon: 'cup-soda', speechText: 'Je voudrais du thé, s\'il vous plaît.' },
+      { id: 'juice', label: 'Jus', icon: 'glass-water', speechText: 'Je voudrais du jus.' },
+      { id: 'hungry', label: 'J\'ai faim', icon: 'utensils', speechText: 'J\'ai faim, puis-je avoir une collation ?' },
+      { id: 'full', label: 'Je suis plein', icon: 'check', speechText: 'Je suis plein, merci.' },
     ]
   },
   {
@@ -623,11 +623,11 @@ const COMMON_FRENCH = [
     icon: 'stethoscope',
     color: 'bg-blue-800',
     children: [
-      { id: 'doctor', label: 'Médecin', icon: 'users', speechText: 'Je dois voir un médecin.' },
-      { id: 'nurse', label: 'Infirmière', icon: 'users', speechText: 'Appelez l\'infirmière s\'il vous plaît.' },
-      { id: 'meds', label: 'Médicament', icon: 'pill', speechText: 'J\'ai besoin de mes médicaments.' },
-      { id: 'suction', label: 'Aspiration', icon: 'wind', speechText: 'J\'ai besoin d\'aspiration s\'il vous plaît.' },
-      { id: 'position', label: 'Position', icon: 'refresh-cw', speechText: 'Aidez-moi à changer de position s\'il vous plaît.' },
+      { id: 'doctor', label: 'Docteur', icon: 'users', speechText: 'J\'ai besoin de voir un médecin.' },
+      { id: 'nurse', label: 'Infirmière', icon: 'users', speechText: 'Appelez l\'infirmière, s\'il vous plaît.' },
+      { id: 'meds', label: 'Médicaments', icon: 'pill', speechText: 'J\'ai besoin de mes médicaments.' },
+      { id: 'suction', label: 'Aspiration', icon: 'wind', speechText: 'J\'ai besoin d\'aspiration, s\'il vous plaît.' },
+      { id: 'position', label: 'Repositionner', icon: 'refresh-cw', speechText: 'Aidez-moi à changer de position, s\'il vous plaît.' },
     ]
   },
   {
@@ -636,22 +636,23 @@ const COMMON_FRENCH = [
     icon: 'bed',
     color: 'bg-blue-600',
     children: [
-      { id: 'bed', label: 'Lit', icon: 'bed', speechText: "Pouvez-vous ajuster mon lit ?" },
-      { id: 'hot', label: 'Trop chaud', icon: 'thermometer-sun', speechText: "J'ai trop chaud." },
-      { id: 'cold', label: 'Trop froid', icon: 'thermometer-snowflake', speechText: "J'ai trop froid." },
+      { id: 'adjust_bed', label: 'Ajuster Lit', icon: 'bed', speechText: 'Ajustez mon lit, s\'il vous plaît.' },
+      { id: 'pillow', label: 'Oreiller', icon: 'smile', speechText: 'Pouvez-vous arranger mon oreiller ?' },
+      { id: 'too_hot', label: 'Trop Chaud', icon: 'thermometer-sun', speechText: 'J\'ai trop chaud.' },
+      { id: 'too_cold', label: 'Trop Froid', icon: 'thermometer-snowflake', speechText: 'J\'ai trop froid.' },
       { 
-          id: 'pain', 
-          label: 'Douleur', 
-          icon: 'alert-circle', 
-          children: [
-              { id: 'head', label: 'Tête', icon: 'smile', speechText: "J'ai mal à la tête." },
-              { id: 'stomach', label: 'Estomac', icon: 'user', speechText: "J'ai mal au ventre." },
-              { id: 'chest', label: 'Poitrine', icon: 'alert-circle', speechText: "J'ai mal à la poitrine." },
-              { id: 'back', label: 'Dos', icon: 'user', speechText: "J'ai mal au dos." },
-              { id: 'arms', label: 'Bras', icon: 'user', speechText: "J'ai mal aux bras." },
-              { id: 'legs', label: 'Jambes', icon: 'user', speechText: "J'ai mal aux jambes." },
-              { id: 'general', label: 'Général', icon: 'alert-circle', speechText: "J'ai mal." }
-          ]
+        id: 'pain', 
+        label: 'Douleur', 
+        icon: 'alert-circle', 
+        children: [
+          { id: 'head', label: 'Tête', icon: 'smile', speechText: 'J\'ai mal à la tête.' },
+          { id: 'stomach', label: 'Estomac', icon: 'user', speechText: 'J\'ai mal à l\'estomac.' },
+          { id: 'chest', label: 'Poitrine', icon: 'alert-circle', speechText: 'J\'ai mal à la poitrine.' },
+          { id: 'back', label: 'Dos', icon: 'user', speechText: 'J\'ai mal au dos.' },
+          { id: 'arms', label: 'Bras', icon: 'user', speechText: 'J\'ai mal aux bras.' },
+          { id: 'legs', label: 'Jambes', icon: 'user', speechText: 'J\'ai mal aux jambes.' },
+          { id: 'general', label: 'Général', icon: 'alert-circle', speechText: 'J\'ai mal.' }
+        ]
       },
     ]
   },
@@ -661,8 +662,10 @@ const COMMON_FRENCH = [
     icon: 'shower-head',
     color: 'bg-teal-600',
     children: [
-      { id: 'toilet', label: 'Toilettes', icon: 'bath', speechText: "J'ai besoin d'aller aux toilettes." },
-      { id: 'wash', label: 'Laver', icon: 'sparkles', speechText: "Je veux me laver." },
+      { id: 'bathroom', label: 'Toilettes', icon: 'bath', speechText: 'J\'ai besoin d\'utiliser les toilettes.' },
+      { id: 'shower', label: 'Douche', icon: 'shower-head', speechText: 'Je voudrais prendre une douche.' },
+      { id: 'face', label: 'Laver Visage', icon: 'sparkles', speechText: 'Je veux me laver le visage.' },
+      { id: 'teeth', label: 'Brosser Dents', icon: 'smile', speechText: 'Je dois me brosser les dents.' },
     ]
   },
   {
@@ -674,7 +677,7 @@ const COMMON_FRENCH = [
       { id: 'family', label: 'Famille', icon: 'users', speechText: 'Je veux voir ma famille.' },
       { id: 'friend', label: 'Ami', icon: 'user', speechText: 'Je veux voir un ami.' },
       { id: 'caregiver', label: 'Soignant', icon: 'user', speechText: 'Où est mon soignant ?' },
-      { id: 'alone', label: 'Intimité', icon: 'door-closed', speechText: 'Je voudrais un peu d\'intimité s\'il vous plaît.' },
+      { id: 'alone', label: 'Intimité', icon: 'door-closed', speechText: 'Je voudrais un peu d\'intimité, s\'il vous plaît.' },
     ]
   },
   {
@@ -683,20 +686,22 @@ const COMMON_FRENCH = [
     icon: 'lightbulb',
     color: 'bg-green-700',
     children: [
-      { id: 'lights_on', label: 'Lumière ON', icon: 'sun', speechText: 'Allumez la lumière s\'il vous plaît.' },
-      { id: 'lights_off', label: 'Lumière OFF', icon: 'moon', speechText: 'Éteignez la lumière s\'il vous plaît.' },
+      { id: 'lights_on', label: 'Lumières On', icon: 'sun', speechText: 'Allumez les lumières, s\'il vous plaît.' },
+      { id: 'lights_off', label: 'Lumières Off', icon: 'moon', speechText: 'Éteignez les lumières, s\'il vous plaît.' },
       { id: 'fan', label: 'Ventilateur', icon: 'fan', speechText: 'Pouvez-vous allumer le ventilateur ?' },
-      { id: 'window', label: 'Fenêtre', icon: 'maximize', speechText: 'Ouvrez la fenêtre s\'il vous plaît.' },
+      { id: 'window', label: 'Fenêtre', icon: 'maximize', speechText: 'Ouvrez la fenêtre, s\'il vous plaît.' },
+      { id: 'door', label: 'Porte', icon: 'door-open', speechText: 'Fermez la porte, s\'il vous plaît.' },
     ]
   },
   {
     id: 'activities',
-    label: 'Activities',
+    label: 'Activités',
     icon: 'gamepad',
     color: 'bg-indigo-600',
     children: [
-      { id: 'tv', label: 'Télé', icon: 'tv', speechText: 'Je veux regarder la télé.' },
+      { id: 'tv', label: 'TV', icon: 'tv', speechText: 'Je veux regarder la télévision.' },
       { id: 'music', label: 'Musique', icon: 'music', speechText: 'Je veux écouter de la musique.' },
+      { id: 'read', label: 'Lire', icon: 'book', speechText: 'Lisez-moi quelque chose, s\'il vous plaît.' },
       { id: 'outside', label: 'Dehors', icon: 'sun', speechText: 'Je veux aller dehors.' },
     ]
   }

@@ -130,7 +130,8 @@ const speakWithBrowser = (text: string, language: Language, voiceURI?: string) =
   // 2. Fallback to high-quality default for the language if no valid preference found
   if (!voice) {
     const langVoices = getVoicesForLanguage(language);
-    voice = langVoices.find(v => v.name.includes('Google') || v.name.includes('Premium')) || 
+    voice = langVoices.find(v => v.name.includes('Amelie')) || 
+            langVoices.find(v => v.name.includes('Google') || v.name.includes('Premium')) || 
             langVoices.find(v => v.name.includes('Microsoft')) ||
             langVoices[0];
   }
