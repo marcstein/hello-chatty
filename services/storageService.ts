@@ -19,6 +19,18 @@ const isSupabaseConfigured = () => {
          !!SUPABASE_URL;
 };
 
+// Helper for UUID generation (Required for Supabase ID columns)
+const generateUUID = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    // Fallback for older environments
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+};
+
 // Initialize Supabase Client
 // using the specific project URL as fallback based on your dashboard link
 export const supabase = createClient(
@@ -72,7 +84,6 @@ export const getSessionUserId = (): string | null => {
 export const getStoredUsers = async (): Promise<UserProfile[]> => {
   // Fallback if not configured
   if (!isSupabaseConfigured()) {
-    console.warn("Supabase not configured. Using LocalStorage.");
     return getLocalUsers();
   }
 
@@ -95,6 +106,10 @@ export const getStoredUsers = async (): Promise<UserProfile[]> => {
 };
 
 export const getUserById = async (userId: string): Promise<UserProfile | null> => {
+    if (userId === 'demo_user') {
+        return createDemoUser();
+    }
+
     if (!isSupabaseConfigured()) {
         const users = getLocalUsers();
         return users.find(u => u.id === userId) || null;
@@ -115,9 +130,37 @@ export const getUserById = async (userId: string): Promise<UserProfile | null> =
     }
 };
 
+// Helper to create the demo user object on the fly
+const createDemoUser = (): UserProfile => {
+    return {
+        id: 'demo_user',
+        email: 'demo@chatty.ai',
+        name: 'Demo User',
+        password: 'demo123',
+        gender: 'female', // Changed to female to match Sabrina voice for cohesive demo
+        settings: {
+            language: Language.ENGLISH,
+            interactionMode: 'CLICK', // Mouse mode by default for easier video recording
+            dwellTimeMs: 800,
+            elevenLabs: {
+                // Default to Sabrina for female
+                voiceId: DEFAULT_ELEVEN_LABS_VOICES[Language.ENGLISH].female
+            }
+        },
+        serviceTrees: JSON.parse(JSON.stringify(SERVICE_TREES)),
+        createdAt: Date.now()
+    };
+};
+
 export const loginUser = async (email: string, password: string): Promise<UserProfile | null> => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPass = password.trim();
+
+    // --- DEMO USER BYPASS ---
+    // Allows instant login for the demo video without needing DB entry
+    if (cleanEmail === 'demo@chatty.ai' && cleanPass === 'demo123') {
+        return createDemoUser();
+    }
 
     if (!isSupabaseConfigured()) {
         const users = getLocalUsers();
@@ -126,6 +169,7 @@ export const loginUser = async (email: string, password: string): Promise<UserPr
 
     try {
         // Query jsonb column 'data' for the email
+        // Note: This requires the 'data' column to be queryable or RLS to allow access
         const { data, error } = await supabase
             .from('profiles')
             .select('data')
@@ -159,7 +203,7 @@ export const createNewUser = async (email: string, name: string, password: strin
   }
 
   const newUser: UserProfile = {
-    id: Date.now().toString(),
+    id: generateUUID(), // Using UUID instead of timestamp for DB compatibility
     email: email.trim().toLowerCase(),
     name: name.trim(),
     password: password.trim(),
@@ -175,6 +219,7 @@ export const createNewUser = async (email: string, name: string, password: strin
   };
 
   if (!isSupabaseConfigured()) {
+    console.log("Saving user to LocalStorage (No Supabase keys found)");
     const users = getLocalUsers();
     // Check duplicate email locally
     if (users.some(u => u.email === newUser.email)) {
@@ -188,6 +233,9 @@ export const createNewUser = async (email: string, name: string, password: strin
 
   try {
     // Check duplicate email in Supabase (basic check)
+    // Note: If RLS is enabled, this SELECT might fail for anon users. 
+    // If so, the INSERT below will catch the unique constraint if one exists on the email inside data (unlikely for jsonb) 
+    // or if you have a separate email column.
     const { data: existing } = await supabase
         .from('profiles')
         .select('id')
@@ -218,6 +266,11 @@ export const createNewUser = async (email: string, name: string, password: strin
 };
 
 export const updateUserProfile = async (updatedUser: UserProfile): Promise<void> => {
+  // If this is the demo user, allow "saving" to memory/local only to prevent errors
+  if (updatedUser.id === 'demo_user') {
+      return; 
+  }
+
   if (!isSupabaseConfigured()) {
     const users = getLocalUsers();
     const index = users.findIndex(u => u.id === updatedUser.id);
@@ -265,6 +318,10 @@ export const deleteUser = async (userId: string): Promise<void> => {
 };
 
 export const uploadVoiceSample = async (userId: string, audioBlob: Blob): Promise<string | null> => {
+  if (userId === 'demo_user') {
+      return "https://mock.url/demo-sample.webm";
+  }
+
   if (!isSupabaseConfigured()) {
     console.warn("Storage not configured. Returning mock URL.");
     return "mock_url_local_storage";
