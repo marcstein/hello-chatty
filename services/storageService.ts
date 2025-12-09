@@ -219,7 +219,9 @@ export const createNewUser = async (email: string, name: string, password: strin
   };
 
   if (!isSupabaseConfigured()) {
-    console.log("Saving user to LocalStorage (No Supabase keys found)");
+    console.warn("⚠️ SUPABASE NOT CONFIGURED or MISSING KEYS. Falling back to LocalStorage.");
+    console.warn("Please check your .env file and ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set.");
+    
     const users = getLocalUsers();
     // Check duplicate email locally
     if (users.some(u => u.email === newUser.email)) {
@@ -233,9 +235,6 @@ export const createNewUser = async (email: string, name: string, password: strin
 
   try {
     // Check duplicate email in Supabase (basic check)
-    // Note: If RLS is enabled, this SELECT might fail for anon users. 
-    // If so, the INSERT below will catch the unique constraint if one exists on the email inside data (unlikely for jsonb) 
-    // or if you have a separate email column.
     const { data: existing } = await supabase
         .from('profiles')
         .select('id')
@@ -254,7 +253,7 @@ export const createNewUser = async (email: string, name: string, password: strin
       });
 
     if (error) {
-      console.error("Supabase Error (createNewUser):", error.message);
+      console.error("Supabase Insert Error:", error.message, error.details);
       throw error;
     }
 
