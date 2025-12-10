@@ -1,3 +1,4 @@
+
 import { Language, UserSettings } from '../types';
 
 // Use the environment variable injected by Vite
@@ -19,35 +20,100 @@ const EXCLUDED_VOICES = [
 
 let currentAudio: HTMLAudioElement | null = null;
 
+// Fire and Forget (for UI buttons)
 export const speakText = async (text: string, language: Language, settings?: UserSettings) => {
-  // Stop any currently playing audio (Browser or ElevenLabs)
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio = null;
-  }
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-  }
-
-  // 1. Try ElevenLabs if Voice ID is present
-  if (settings?.elevenLabs?.voiceId) {
-    try {
-      await speakWithElevenLabs(text, settings.elevenLabs.voiceId, ENV_ELEVENLABS_API_KEY);
-      return; // Success, skip browser fallback
-    } catch (e) {
-      console.warn("ElevenLabs failed, falling back to browser TTS", e);
-      // Fall through to browser TTS
-    }
-  }
-
-  // 2. Browser TTS Fallback
-  speakWithBrowser(text, language, settings?.voiceURI);
+  await speakTextAsync(text, language, settings);
 };
 
-const speakWithElevenLabs = async (text: string, voiceId: string, apiKey: string) => {
-  if (!apiKey) {
-    throw new Error("ElevenLabs API Key is missing in environment variables");
-  }
+// Promisified Speak (For Demo/Sequencing)
+// Resolves when audio finishes playing
+export const speakTextAsync = (text: string, language: Language, settings?: UserSettings): Promise<void> => {
+  return new Promise(async (resolve) => {
+    // Stop any currently playing audio
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    // 1. Try ElevenLabs
+    if (settings?.elevenLabs?.voiceId) {
+      try {
+        await speakWithElevenLabs(text, settings.elevenLabs.voiceId, ENV_ELEVENLABS_API_KEY, resolve);
+        return; 
+      } catch (e) {
+        console.warn("ElevenLabs failed, falling back to browser TTS", e);
+      }
+    }
+
+    // 2. Browser TTS Fallback
+    speakWithBrowser(text, language, resolve, settings?.voiceURI);
+  });
+};
+
+export const speakNarratorAsync = (text: string): Promise<void> => {
+    return new Promise(async (resolve) => {
+         // Stop any currently playing audio
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+        }
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+
+        // 1. Try ElevenLabs Narrator
+        // Requested Voice ID: TbMNBJ27fH2U0VgpSNko
+        if (ENV_ELEVENLABS_API_KEY) {
+            try {
+                console.log("Attempting ElevenLabs Narration with ID: TbMNBJ27fH2U0VgpSNko");
+                await speakWithElevenLabs(text, 'TbMNBJ27fH2U0VgpSNko', ENV_ELEVENLABS_API_KEY, resolve);
+                return;
+            } catch (e) {
+                console.warn("ElevenLabs Narrator failed, falling back to browser", e);
+            }
+        } else {
+            console.warn("No ElevenLabs API Key found. Using browser TTS.");
+        }
+
+        // 2. Browser Fallback
+         if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 1.0; // Standard pace for clear narration
+            
+            const voices = window.speechSynthesis.getVoices();
+            
+            // Prioritize standard American Female voices
+            const narratorVoice = voices.find(v => v.name === 'Google US English') || 
+                                  voices.find(v => v.name === 'Samantha') ||
+                                  voices.find(v => v.lang === 'en-US' && !v.name.toLowerCase().includes('male')) ||
+                                  voices.find(v => v.lang === 'en-US');
+            
+            if (narratorVoice) utterance.voice = narratorVoice;
+            
+            utterance.onend = () => resolve();
+            utterance.onerror = () => resolve(); // Resolve on error to keep demo moving
+            
+            window.speechSynthesis.speak(utterance);
+         } else {
+             resolve();
+         }
+    });
+};
+
+const speakWithElevenLabs = async (text: string, voiceId: string, apiKey: string, onComplete: () => void) => {
+  if (!apiKey) throw new Error("Missing Key");
+
+  // Log to confirm we are hitting the endpoint
+  console.log(`Calling ElevenLabs: ${voiceId}`);
+
+  // We prepend " - " to create a brief silence/breath at the start.
+  // This prevents the first syllable ("I" in "I need help") from being cut off 
+  // by audio hardware warmup latency or browser playback initialization.
+  const safeText = ` - ${text}`;
 
   const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
     method: 'POST',
@@ -56,18 +122,15 @@ const speakWithElevenLabs = async (text: string, voiceId: string, apiKey: string
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      text: text,
+      text: safeText,
       model_id: "eleven_multilingual_v2",
-      voice_settings: {
-        stability: 0.5,
-        similarity_boost: 0.75,
-      }
+      voice_settings: { stability: 0.5, similarity_boost: 0.75 }
     }),
   });
 
   if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    throw new Error(`ElevenLabs API Error: ${response.status} ${JSON.stringify(errorBody)}`);
+      const errText = await response.text();
+      throw new Error(`API Error: ${response.status} ${errText}`);
   }
 
   const blob = await response.blob();
@@ -75,12 +138,13 @@ const speakWithElevenLabs = async (text: string, voiceId: string, apiKey: string
   const audio = new Audio(audioUrl);
   currentAudio = audio;
   
-  await audio.play();
-  
   audio.onended = () => {
     URL.revokeObjectURL(audioUrl);
     currentAudio = null;
+    onComplete();
   };
+  
+  await audio.play();
 };
 
 const getLangPrefix = (language: Language) => {
@@ -104,9 +168,9 @@ export const getVoicesForLanguage = (language: Language): SpeechSynthesisVoice[]
   });
 };
 
-const speakWithBrowser = (text: string, language: Language, voiceURI?: string) => {
+const speakWithBrowser = (text: string, language: Language, onComplete: () => void, voiceURI?: string) => {
   if (!('speechSynthesis' in window)) {
-    console.warn("Speech synthesis not supported");
+    onComplete();
     return;
   }
 
@@ -117,22 +181,18 @@ const speakWithBrowser = (text: string, language: Language, voiceURI?: string) =
   const voices = window.speechSynthesis.getVoices();
   let voice: SpeechSynthesisVoice | undefined;
 
-  // 1. Try to find the user's specific preferred voice
-  // IMPORTANT: Verify the preferred voice matches the requested language to prevent accents/gibberish
   if (voiceURI) {
     const preferredVoice = voices.find(v => v.voiceURI === voiceURI);
-    // Only use if it matches the requested language
     if (preferredVoice && preferredVoice.lang.toLowerCase().startsWith(langPrefix)) {
       voice = preferredVoice;
     }
   }
 
-  // 2. Fallback to high-quality default for the language if no valid preference found
   if (!voice) {
     const langVoices = getVoicesForLanguage(language);
     voice = langVoices.find(v => v.name.includes('Amelie')) || 
-            langVoices.find(v => v.name.includes('Google') || v.name.includes('Premium')) || 
-            langVoices.find(v => v.name.includes('Microsoft')) ||
+            langVoices.find(v => v.name.includes('Google')) || 
+            langVoices.find(v => v.name.includes('Premium')) ||
             langVoices[0];
   }
 
@@ -142,7 +202,8 @@ const speakWithBrowser = (text: string, language: Language, voiceURI?: string) =
   }
 
   utterance.rate = 1.0; 
-  utterance.pitch = 1.0;
+  utterance.onend = () => onComplete();
+  utterance.onerror = () => onComplete();
 
   window.speechSynthesis.speak(utterance);
 };
