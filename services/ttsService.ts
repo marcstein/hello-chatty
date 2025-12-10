@@ -1,8 +1,26 @@
 
 import { Language, UserSettings } from '../types';
 
-// Use the environment variable injected by Vite
-const ENV_ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || '';
+// Robust Env Var Retrieval
+const getElevenLabsKey = () => {
+  // 1. Try Process Env (Vite Define / Node)
+  if (typeof process !== 'undefined' && process.env?.ELEVENLABS_API_KEY) {
+      return process.env.ELEVENLABS_API_KEY;
+  }
+  
+  // 2. Try Import Meta Env (Vite Native)
+  // @ts-ignore
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+      // @ts-ignore
+      if (import.meta.env.ELEVENLABS_API_KEY) return import.meta.env.ELEVENLABS_API_KEY;
+      // @ts-ignore
+      if (import.meta.env.VITE_ELEVENLABS_API_KEY) return import.meta.env.VITE_ELEVENLABS_API_KEY;
+  }
+  
+  return '';
+};
+
+const ENV_ELEVENLABS_API_KEY = getElevenLabsKey();
 
 // Voices to exclude (Novelty/Low Quality/Characters)
 const EXCLUDED_VOICES = [
