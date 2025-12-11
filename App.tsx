@@ -10,7 +10,7 @@ import {
 import DwellButton from './components/DwellButton';
 import Keyboard from './components/Keyboard';
 import HistoryLog from './components/HistoryLog';
-import GazeTracker from './components/GazeTracker';
+// EyeTracker components removed to fix build issues
 import { InteractionProvider, useInteraction } from './context/InteractionContext';
 import { Language, ScreenMode, ChatMessage, ServiceItem, UserProfile, InteractionMode, Gender, UserSettings } from './types';
 import { SERVICE_TREES, TRANSLATIONS, DWELL_TIME_MS as DEFAULT_DWELL_MS, DEFAULT_ELEVEN_LABS_VOICES, ELEVEN_LABS_VOICE_NAMES, DEFAULT_INTERACTION_MODE, VOICE_CLONE_SCRIPTS } from './constants'; 
@@ -96,6 +96,7 @@ const AppContent: React.FC = () => {
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [predictions, setPredictions] = useState<string[]>([]);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  // Eye tracking state kept for type compatibility but feature disabled
   const [isEyeTrackerEnabled, setIsEyeTrackerEnabled] = useState(false);
   
   // Interaction Context
@@ -514,6 +515,7 @@ const AppContent: React.FC = () => {
     setCurrentUser(updatedUser);
   };
   
+  // Feature disabled - toggle logic kept for code compatibility if needed later
   const handleEyeTrackerToggle = async () => {
     const newState = !isEyeTrackerEnabled;
     setIsEyeTrackerEnabled(newState);
@@ -668,8 +670,7 @@ const AppContent: React.FC = () => {
   return (
     <div className="flex flex-col h-screen p-2 md:p-4 gap-2 md:gap-4 bg-slate-950 relative">
       
-      {/* WebGazer Integration */}
-      {isEyeTrackerEnabled && <GazeTracker />}
+      {/* Eye Tracker Component Removed to fix build errors. Feature disabled. */}
 
       {/* Top Bar: Buffer & Actions */}
       <div className="flex gap-2 md:gap-4 h-20 md:h-32 shrink-0">
@@ -800,17 +801,7 @@ const AppContent: React.FC = () => {
                         <DwellButton onClick={() => handleModeChange('CLICK')} active={interactionMode === 'CLICK'} className="flex-1 h-14 bg-slate-700 border-slate-600"><div className="flex items-center gap-2"><MousePointer2 className="w-5 h-5" /> Mouse Mode</div></DwellButton>
                     </div>
 
-                    {/* NEW EYE TRACKING SECTION */}
-                    <h4 className="text-lg font-bold text-slate-300 mb-2 mt-6">Webcam Eye Tracking (BETA)</h4>
-                    <DwellButton onClick={handleEyeTrackerToggle} active={isEyeTrackerEnabled} className="w-full h-16 bg-slate-700 border-slate-600">
-                        <div className="flex items-center justify-center gap-3">
-                            <Camera className={isEyeTrackerEnabled ? "text-white" : "text-slate-400"} /> 
-                            <span>{isEyeTrackerEnabled ? "Enabled (Look at buttons to select)" : "Enable WebGazer (Requires Camera)"}</span>
-                        </div>
-                    </DwellButton>
-                    <p className="text-xs text-slate-500 mt-2">
-                        Powered by WebGazer.js. Ensure your face is well-lit. Calibration happens automatically as you use it, or click/look at corners to improve accuracy.
-                    </p>
+                    {/* EYE TRACKING SECTION REMOVED FOR BUILD STABILITY */}
                  </div>
                </div>
                
