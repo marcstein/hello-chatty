@@ -4,7 +4,7 @@ import {
   Utensils, Droplets, Coffee, GlassWater, Bed, Smile, ThermometerSun, ThermometerSnowflake, AlertCircle, ShowerHead, Bath, Sparkles, CupSoda,
   Mic, Square, Play, Upload, HeartHandshake, Camera, Aperture, X,
   Heart, Users, Lightbulb, Tv, Music, Gamepad2, Stethoscope, Pill, Syringe, Siren, ThumbsUp, ThumbsDown, Clock, XOctagon, Fan, Sun, Moon,
-  Phone, BookOpen, Armchair, Eye, MousePointer2, Timer, ChevronDown, ChevronRight, ExternalLink, Target
+  Phone, BookOpen, Armchair, Eye, MousePointer2, Timer, ChevronDown, ChevronRight, ExternalLink, Target, Edit3
 } from 'lucide-react';
 import DwellButton from './components/DwellButton';
 import Keyboard from './components/Keyboard';
@@ -95,15 +95,11 @@ const AppContent: React.FC = () => {
   const [predictions, setPredictions] = useState<string[]>([]);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   
-  // Eye tracking state - Kept in state for compatibility but feature disabled
-  const [isEyeTrackerEnabled, setIsEyeTrackerEnabled] = useState(false);
-  
   // Interaction Context
   const { mode: interactionMode, setMode: setInteractionMode, dwellTimeMs, setDwellTimeMs, triggerNavigationLock } = useInteraction();
   
   // Settings Temporary State
   const [elVoiceId, setElVoiceId] = useState('');
-  const [showAdvancedVoice, setShowAdvancedVoice] = useState(false);
   
   // Voice Recording State
   const [isRecording, setIsRecording] = useState(false);
@@ -121,7 +117,6 @@ const AppContent: React.FC = () => {
   // Navigation State for Services
   const [currentServicePath, setCurrentServicePath] = useState<ServiceItem[]>([]);
   const predictionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasSystemElevenLabsKey = !!process.env.ELEVENLABS_API_KEY;
 
   // --- Initialization ---
 
@@ -155,7 +150,6 @@ const AppContent: React.FC = () => {
     if (currentUser?.settings?.interactionMode) {
       setInteractionMode(currentUser.settings.interactionMode);
     } else {
-        // Default based on constant
         setInteractionMode(DEFAULT_INTERACTION_MODE);
     }
     if (currentUser?.settings?.dwellTimeMs) {
@@ -262,7 +256,6 @@ const AppContent: React.FC = () => {
     setAuthView('LANDING');
     setBuffer('');
     setLanguage(getInitialLanguage());
-    setIsEyeTrackerEnabled(false); 
   };
 
   const handleClear = useCallback(() => {
@@ -307,10 +300,7 @@ const AppContent: React.FC = () => {
 
   const handleSpeak = () => {
     if (!buffer.trim()) return;
-    
-    // Safety lock to prevent repeat triggers if user dwells too long
     triggerNavigationLock(1200);
-    
     speakText(buffer, language, currentUser?.settings);
     const newMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -327,19 +317,12 @@ const AppContent: React.FC = () => {
       setBuffer(text + ' '); 
       return;
     }
-
-    // If buffer ends with space, treat as next word
     if (buffer.endsWith(' ')) {
         setBuffer(buffer + text + ' ');
         return;
     }
-
-    // Otherwise, check if it is a completion or next word
     const words = buffer.trimEnd().split(' ');
     const lastWord = words[words.length - 1] || '';
-    
-    // Heuristic: If prediction starts with the last word, it's a completion. Replace it.
-    // Otherwise, it's likely a next word prediction (even if user hasn't hit space yet). Append it.
     const isCompletion = text.toLowerCase().startsWith(lastWord.toLowerCase());
 
     if (isCompletion) {
@@ -356,7 +339,6 @@ const AppContent: React.FC = () => {
     if (mode !== ScreenMode.KEYBOARD) return;
 
     if (buffer.trim().length > 0) {
-      // INCREASED DEBOUNCE to 500ms to avoid Quota Exhaustion
       predictionTimeoutRef.current = setTimeout(async () => {
         try {
           const preds = await getPredictions(buffer, language);
@@ -479,13 +461,9 @@ const AppContent: React.FC = () => {
   const handleServiceSelect = (item: ServiceItem) => {
     if (item.children) {
       setCurrentServicePath(prev => [...prev, item]);
-      // Safety lock to prevent double-clicks during navigation transitions
       triggerNavigationLock(500); 
     } else {
-      // LEAF NODE (Action)
-      // Lock interaction to prevent the "Dwell Repeat" loop the user reported
       triggerNavigationLock(1200); 
-
       const textToSpeak = item.speechText || item.label;
       speakText(textToSpeak, language, currentUser?.settings);
       const newMsg: ChatMessage = { id: Date.now().toString(), sender: 'user', text: textToSpeak, timestamp: Date.now() };
@@ -500,7 +478,7 @@ const AppContent: React.FC = () => {
 
   const handleAddCustomService = async () => {
     if (!currentUser || !buffer.trim()) return;
-    triggerNavigationLock(1000); // Lock to prevent multi-add
+    triggerNavigationLock(1000); 
     const newItemBase: ServiceItem = {
       id: Date.now().toString(),
       label: buffer.length > 15 ? buffer.substring(0, 12) + '...' : buffer,
@@ -522,7 +500,37 @@ const AppContent: React.FC = () => {
     });
     await updateUserProfile(updatedUser);
     setCurrentUser(updatedUser);
-    setBuffer(''); // Clear buffer after adding
+    setBuffer(''); 
+  };
+
+  const getCustomButtons = () => {
+    if (!currentUser) return [];
+    const customs: { lang: Language, item: ServiceItem }[] = [];
+    const traverse = (nodes: ServiceItem[], lang: Language) => {
+        nodes.forEach(node => {
+            if (node.isCustom) customs.push({ lang, item: node });
+            if (node.children) traverse(node.children, lang);
+        });
+    };
+    if (currentUser.serviceTrees[language]) {
+        traverse(currentUser.serviceTrees[language], language);
+    }
+    return customs;
+  };
+
+  const handleDeleteCustomButton = async (id: string) => {
+      if (!currentUser) return;
+      const updatedUser = JSON.parse(JSON.stringify(currentUser)) as UserProfile;
+      const removeFromList = (list: ServiceItem[]): ServiceItem[] => {
+          return list.filter(item => {
+              if (item.id === id) return false;
+              if (item.children) item.children = removeFromList(item.children);
+              return true;
+          });
+      };
+      updatedUser.serviceTrees[language] = removeFromList(updatedUser.serviceTrees[language]);
+      await updateUserProfile(updatedUser);
+      setCurrentUser(updatedUser);
   };
 
   const handleModeChange = async (newMode: InteractionMode) => {
@@ -533,33 +541,6 @@ const AppContent: React.FC = () => {
     setCurrentUser(updatedUser);
   };
   
-  // Eye tracker disabled per request
-
-  const handleDwellTimeChange = async (ms: number) => {
-    setDwellTimeMs(ms);
-    if (!currentUser) return;
-    const updatedUser = { ...currentUser, settings: { ...currentUser.settings, dwellTimeMs: ms } };
-    await updateUserProfile(updatedUser);
-    setCurrentUser(updatedUser);
-  };
-  
-  const handleVoiceChange = async (voiceURI: string) => {
-    if (!currentUser) return;
-    const updatedUser: UserProfile = { ...currentUser, settings: { ...currentUser.settings, voiceURI, elevenLabs: { ...currentUser.settings.elevenLabs, voiceId: '' } } };
-    await updateUserProfile(updatedUser);
-    setCurrentUser(updatedUser);
-    setElVoiceId(''); 
-    speakText(TRANSLATIONS[language].voiceUpdated, language, updatedUser.settings);
-  };
-
-  const handleElevenLabsSave = async () => {
-    if (!currentUser) return;
-    const updatedUser = { ...currentUser, settings: { ...currentUser.settings, elevenLabs: { voiceId: elVoiceId } } };
-    await updateUserProfile(updatedUser);
-    setCurrentUser(updatedUser);
-    speakText(TRANSLATIONS[language].elevenLabsConnected, language, updatedUser.settings);
-  };
-
   const handlePresetSelect = async (g: Gender) => {
     if (!currentUser) return;
     const voiceId = DEFAULT_ELEVEN_LABS_VOICES[language][g];
@@ -583,8 +564,6 @@ const AppContent: React.FC = () => {
   if (isLoginMode) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-slate-900 text-white p-4 md:p-8 overflow-y-auto relative z-10">
-        
-        {/* Cinematic Background */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
           <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-brand-900/20 rounded-full blur-[100px] animate-pulse duration-10000" />
           <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-indigo-900/20 rounded-full blur-[100px] animate-pulse duration-7000" style={{animationDelay: '1s'}} />
@@ -674,8 +653,6 @@ const AppContent: React.FC = () => {
   return (
     <div className="flex flex-col h-screen p-2 md:p-4 gap-2 md:gap-4 bg-slate-950 relative">
       
-      {/* Eye Tracker - Disabled */}
-
       {/* Top Bar: Buffer & Actions */}
       <div className="flex gap-2 md:gap-4 h-20 md:h-32 shrink-0">
         <div className="flex-1 bg-white text-slate-900 rounded-2xl p-2 md:p-4 shadow-inner border-4 border-slate-300 overflow-hidden relative">
@@ -765,7 +742,7 @@ const AppContent: React.FC = () => {
                     </DwellButton>
                   );
                 })}
-                {/* Dynamic Add Button - visible if text is in buffer */}
+                {/* Dynamic Add Button */}
                 {buffer.trim().length > 0 ? (
                     <DwellButton 
                         id="btn-add-service"
@@ -810,6 +787,42 @@ const AppContent: React.FC = () => {
                         <DwellButton onClick={() => handleModeChange('DWELL')} active={interactionMode === 'DWELL'} className="flex-1 h-14 bg-slate-700 border-slate-600"><div className="flex items-center gap-2"><Eye className="w-5 h-5" /> Eye/Dwell</div></DwellButton>
                         <DwellButton onClick={() => handleModeChange('CLICK')} active={interactionMode === 'CLICK'} className="flex-1 h-14 bg-slate-700 border-slate-600"><div className="flex items-center gap-2"><MousePointer2 className="w-5 h-5" /> Mouse Mode</div></DwellButton>
                     </div>
+                 </div>
+               </div>
+
+               {/* Custom Buttons Management Section */}
+               <div className="bg-slate-800 p-4 md:p-6 rounded-xl border border-slate-700 border-l-4 border-l-fuchsia-500">
+                 <h3 className="text-xl md:text-2xl font-bold text-fuchsia-400 mb-2 md:mb-4 flex items-center gap-2"><Edit3 /> Custom Button Manager</h3>
+                 <p className="text-slate-300 mb-4">
+                     To add a new button: 
+                     <span className="text-white font-bold mx-1">1. Type phrase in Keyboard</span> → 
+                     <span className="text-white font-bold mx-1">2. Go to Services</span> → 
+                     <span className="text-white font-bold mx-1">3. Click Add</span>
+                 </p>
+                 
+                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                     {getCustomButtons().length === 0 ? (
+                         <div className="col-span-full p-4 text-slate-500 text-center italic border border-dashed border-slate-700 rounded-lg">
+                             No custom buttons added yet.
+                         </div>
+                     ) : (
+                         getCustomButtons().map(({ item }) => (
+                            <div key={item.id} className="relative group">
+                                <div className="p-3 bg-slate-700 rounded-lg border border-slate-600 flex items-center justify-between">
+                                    <span className="font-bold truncate pr-2">{item.label}</span>
+                                </div>
+                                <DwellButton 
+                                    onClick={() => handleDeleteCustomButton(item.id)} 
+                                    className="absolute inset-0 bg-red-900/90 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg border-2 border-red-500"
+                                >
+                                    <div className="flex flex-col items-center text-red-100">
+                                        <Trash2 size={24} />
+                                        <span className="text-xs font-bold uppercase mt-1">Delete</span>
+                                    </div>
+                                </DwellButton>
+                            </div>
+                         ))
+                     )}
                  </div>
                </div>
                
