@@ -1,13 +1,16 @@
-
 import { Language, UserSettings } from '../types';
 
 // Robust Env Var Retrieval
 const getElevenLabsKey = () => {
-  // 1. Try Process Env (Vite Define / Node)
-  if (typeof process !== 'undefined' && process.env?.ELEVENLABS_API_KEY) {
-      return process.env.ELEVENLABS_API_KEY;
+  // 1. Try direct replacement (Vite 'define' replaces the whole expression)
+  try {
+    // @ts-ignore
+    const val = process.env.ELEVENLABS_API_KEY;
+    if (val) return val;
+  } catch (e) {
+    // Ignore ReferenceError if process is not defined and not replaced
   }
-  
+
   // 2. Try Import Meta Env (Vite Native)
   // @ts-ignore
   if (typeof import.meta !== 'undefined' && import.meta.env) {
@@ -37,6 +40,8 @@ const EXCLUDED_VOICES = [
 ];
 
 let currentAudio: HTMLAudioElement | null = null;
+// FIX: Store global reference to current utterance to prevent Browser Garbage Collection from stopping speech early
+let currentUtterance: SpeechSynthesisUtterance | null = null;
 
 // Fire and Forget (for UI buttons)
 export const speakText = async (text: string, language: Language, settings?: UserSettings) => {
@@ -47,26 +52,35 @@ export const speakText = async (text: string, language: Language, settings?: Use
 // Resolves when audio finishes playing
 export const speakTextAsync = (text: string, language: Language, settings?: UserSettings): Promise<void> => {
   return new Promise(async (resolve) => {
-    // Stop any currently playing audio
+    // 1. Cleanup previous audio
     if (currentAudio) {
       currentAudio.pause();
       currentAudio = null;
     }
+    // 2. Cancel previous browser TTS
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
+      // Ensure we clear our reference so we don't track the cancelled one
+      currentUtterance = null;
     }
 
-    // 1. Try ElevenLabs
+    if (!text || !text.trim()) {
+        resolve();
+        return;
+    }
+
+    // 3. Try ElevenLabs (with Timeout Fallback)
     if (settings?.elevenLabs?.voiceId) {
       try {
         await speakWithElevenLabs(text, settings.elevenLabs.voiceId, ENV_ELEVENLABS_API_KEY, resolve);
         return; 
       } catch (e) {
-        console.warn("ElevenLabs failed, falling back to browser TTS", e);
+        console.warn("ElevenLabs failed or timed out, falling back to browser TTS", e);
+        // Fallback proceeds below
       }
     }
 
-    // 2. Browser TTS Fallback
+    // 4. Browser TTS Fallback
     speakWithBrowser(text, language, resolve, settings?.voiceURI);
   });
 };
@@ -80,89 +94,73 @@ export const speakNarratorAsync = (text: string): Promise<void> => {
         }
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
+            currentUtterance = null;
         }
 
         // 1. Try ElevenLabs Narrator
-        // Requested Voice ID: TbMNBJ27fH2U0VgpSNko
         if (ENV_ELEVENLABS_API_KEY) {
             try {
-                console.log("Attempting ElevenLabs Narration with ID: TbMNBJ27fH2U0VgpSNko");
+                // Narrator ID: TbMNBJ27fH2U0VgpSNko
                 await speakWithElevenLabs(text, 'TbMNBJ27fH2U0VgpSNko', ENV_ELEVENLABS_API_KEY, resolve);
                 return;
             } catch (e) {
                 console.warn("ElevenLabs Narrator failed, falling back to browser", e);
             }
-        } else {
-            console.warn("No ElevenLabs API Key found. Using browser TTS.");
         }
 
         // 2. Browser Fallback
-         if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US';
-            utterance.rate = 1.0; // Standard pace for clear narration
-            
-            const voices = window.speechSynthesis.getVoices();
-            
-            // Prioritize standard American Female voices
-            const narratorVoice = voices.find(v => v.name === 'Google US English') || 
-                                  voices.find(v => v.name === 'Samantha') ||
-                                  voices.find(v => v.lang === 'en-US' && !v.name.toLowerCase().includes('male')) ||
-                                  voices.find(v => v.lang === 'en-US');
-            
-            if (narratorVoice) utterance.voice = narratorVoice;
-            
-            utterance.onend = () => resolve();
-            utterance.onerror = () => resolve(); // Resolve on error to keep demo moving
-            
-            window.speechSynthesis.speak(utterance);
-         } else {
-             resolve();
-         }
+        speakWithBrowser(text, Language.ENGLISH, resolve);
     });
 };
 
 const speakWithElevenLabs = async (text: string, voiceId: string, apiKey: string, onComplete: () => void) => {
   if (!apiKey) throw new Error("Missing Key");
 
-  // Log to confirm we are hitting the endpoint
-  console.log(`Calling ElevenLabs: ${voiceId}`);
+  // Create AbortController to prevent hanging indefinitely
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s max wait for network
 
-  // We prepend " - " to create a brief silence/breath at the start.
-  // This prevents the first syllable ("I" in "I need help") from being cut off 
-  // by audio hardware warmup latency or browser playback initialization.
-  const safeText = ` - ${text}`;
+  try {
+      // We prepend "... " to create a silence/breath at the start.
+      const safeText = `... ${text}`;
 
-  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-    method: 'POST',
-    headers: {
-      'xi-api-key': apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      text: safeText,
-      model_id: "eleven_multilingual_v2",
-      voice_settings: { stability: 0.5, similarity_boost: 0.75 }
-    }),
-  });
+      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: safeText,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+        }),
+        signal: controller.signal
+      });
 
-  if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`API Error: ${response.status} ${errText}`);
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`API Error: ${response.status} ${errText}`);
+      }
+
+      const blob = await response.blob();
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      currentAudio = audio;
+      
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+        currentAudio = null;
+        onComplete();
+      };
+      
+      await audio.play();
+  } catch (error) {
+      clearTimeout(timeoutId);
+      throw error; // Re-throw to trigger fallback
   }
-
-  const blob = await response.blob();
-  const audioUrl = URL.createObjectURL(blob);
-  const audio = new Audio(audioUrl);
-  currentAudio = audio;
-  
-  audio.onended = () => {
-    URL.revokeObjectURL(audioUrl);
-    currentAudio = null;
-    onComplete();
-  };
-  
-  await audio.play();
 };
 
 const getLangPrefix = (language: Language) => {
@@ -192,7 +190,14 @@ const speakWithBrowser = (text: string, language: Language, onComplete: () => vo
     return;
   }
 
+  // Double check cancel
+  window.speechSynthesis.cancel();
+
   const utterance = new SpeechSynthesisUtterance(text);
+  
+  // IMPORTANT: Assign to global variable to prevent Garbage Collection
+  currentUtterance = utterance;
+
   const langPrefix = getLangPrefix(language);
   utterance.lang = langPrefix;
 
@@ -220,10 +225,25 @@ const speakWithBrowser = (text: string, language: Language, onComplete: () => vo
   }
 
   utterance.rate = 1.0; 
-  utterance.onend = () => onComplete();
-  utterance.onerror = () => onComplete();
+  
+  const cleanup = () => {
+      // Only nullify if we are the current one
+      if (currentUtterance === utterance) {
+          currentUtterance = null;
+      }
+      onComplete();
+  };
 
-  window.speechSynthesis.speak(utterance);
+  utterance.onend = cleanup;
+  utterance.onerror = (e) => {
+      console.warn("Browser TTS Error", e);
+      cleanup();
+  };
+
+  // Small timeout ensures the audio context is ready after a cancel
+  setTimeout(() => {
+     window.speechSynthesis.speak(utterance);
+  }, 10);
 };
 
 export const getAvailableVoices = (): SpeechSynthesisVoice[] => {
