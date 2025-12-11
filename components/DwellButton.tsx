@@ -21,64 +21,73 @@ const DwellButton: React.FC<DwellButtonProps> = ({
 }) => {
   const [isDwelling, setIsDwelling] = useState(false);
   const clickTriggeredRef = useRef(false);
+  const isHoveredRef = useRef(false); // Track mouse hover state locally
   const { mode, dwellTimeMs, demoHoverId, gazeTargetId, isInteractionLocked } = useInteraction();
 
-  // Watch for External Triggers (Demo Mode OR WebGazer)
+  // Unified State Management for Dwell Logic
   useEffect(() => {
-    // SECURITY: If interaction is locked (navigation happening), force dwell off and ignore
+    // 1. Security/Lock: If interaction is locked (e.g. navigation transition), force everything off.
     if (isInteractionLocked) {
         if (isDwelling) setIsDwelling(false);
         return;
     }
 
-    // Combined logic: Is this button the target of either the Demo Engine or the Eye Tracker?
-    const isTargeted = (id && demoHoverId === id) || (id && gazeTargetId === id);
+    // 2. Determine if we *should* be dwelling right now
+    const isTargetedByExternal = (id && demoHoverId === id) || (id && gazeTargetId === id);
+    const isHoveredByMouse = isHoveredRef.current;
+    
+    // We should dwell if:
+    // a) External target (Demo/Eye Tracker) says so
+    // b) Mouse is hovering AND we are in DWELL mode AND not disabled
+    const shouldDwell = isTargetedByExternal || (isHoveredByMouse && mode === 'DWELL' && !disabled);
 
-    if (isTargeted) {
+    if (shouldDwell) {
+        // Only start dwelling if not already dwelling
         if (!isDwelling) {
-           setIsDwelling(true);
-           clickTriggeredRef.current = false; // Reset click trigger on new entry
+            setIsDwelling(true);
+            clickTriggeredRef.current = false;
         }
     } else {
-        // If we were dwelling but are no longer targeted
+        // If we shouldn't be dwelling, but we are, turn it off
         if (isDwelling) {
-            // Only cancel if we are in Dwell mode (if we are in Click mode, dwelling is visual only or disabled)
             setIsDwelling(false);
         }
     }
-  }, [demoHoverId, gazeTargetId, id, mode, isDwelling, isInteractionLocked]);
+  }, [demoHoverId, gazeTargetId, id, mode, isDwelling, isInteractionLocked, disabled]); // Trigger on any state change
 
   const handleEnter = () => {
-    if (disabled || mode === 'CLICK' || isInteractionLocked) return;
-    // If demo/gaze is controlling this button, ignore mouse enter to avoid conflict
-    if (demoHoverId || gazeTargetId) return; 
+    isHoveredRef.current = true;
     
-    clickTriggeredRef.current = false;
-    setIsDwelling(true);
+    if (disabled || mode === 'CLICK' || isInteractionLocked) return;
+    
+    // Immediate UI feedback for mouse users (optional, as useEffect would catch it too, but this is snappier)
+    // We check !isDwelling to prevent double-setting if useEffect caught it already
+    if (!demoHoverId && !gazeTargetId && !isDwelling) {
+        clickTriggeredRef.current = false;
+        setIsDwelling(true);
+    }
   };
 
   const handleLeave = () => {
-    if (mode === 'CLICK') return;
-    // If demo/gaze is controlling this, ignore mouse leave
-    if ((id && demoHoverId === id) || (id && gazeTargetId === id)) return;
-
-    setIsDwelling(false);
-    clickTriggeredRef.current = false;
+    isHoveredRef.current = false;
+    
+    // Immediate cleanup for mouse users
+    if (!demoHoverId && !gazeTargetId) {
+        setIsDwelling(false);
+        clickTriggeredRef.current = false;
+    }
   };
 
   const handleAnimationEnd = () => {
-    // If this was triggered by the Demo Engine, we do NOT trigger onClick here (Demo Engine handles it).
-    if (id && demoHoverId === id) return;
-    
-    // Check lock again just in case
+    // Safety checks
     if (isInteractionLocked) return;
+    if (id && demoHoverId === id) return; // Demo engine handles its own clicks
 
-    // Normal Dwell or Gaze Dwell logic
+    // Trigger click if dwelling finished, not disabled, and not already triggered
     if (isDwelling && !disabled && !clickTriggeredRef.current && mode === 'DWELL') {
       clickTriggeredRef.current = true;
       onClick();
       setIsDwelling(false);
-      // Optional: Reset gaze target briefly? No, the user typically looks away after action.
     }
   };
 
@@ -90,9 +99,13 @@ const DwellButton: React.FC<DwellButtonProps> = ({
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
       onClick={() => {
-        if(!disabled && !clickTriggeredRef.current && !isInteractionLocked) {
-            onClick();
-            setIsDwelling(false);
+        // Immediate click support (works in DWELL mode too if user physically clicks/taps)
+        if(!disabled && !isInteractionLocked) {
+            // Prevent double fire if dwell just finished at the same millisecond
+            if (!clickTriggeredRef.current) {
+                onClick();
+                setIsDwelling(false);
+            }
         }
       }}
     >
