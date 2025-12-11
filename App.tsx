@@ -10,7 +10,7 @@ import {
 import DwellButton from './components/DwellButton';
 import Keyboard from './components/Keyboard';
 import HistoryLog from './components/HistoryLog';
-import EyeTracker from './components/EyeTracker';
+import WebcamEyeTracker from './components/WebcamEyeTracker';
 import { InteractionProvider, useInteraction } from './context/InteractionContext';
 import { Language, ScreenMode, ChatMessage, ServiceItem, UserProfile, InteractionMode, Gender, UserSettings } from './types';
 import { SERVICE_TREES, TRANSLATIONS, DWELL_TIME_MS as DEFAULT_DWELL_MS, DEFAULT_ELEVEN_LABS_VOICES, ELEVEN_LABS_VOICE_NAMES, DEFAULT_INTERACTION_MODE, VOICE_CLONE_SCRIPTS } from './constants'; 
@@ -669,7 +669,7 @@ const AppContent: React.FC = () => {
     <div className="flex flex-col h-screen p-2 md:p-4 gap-2 md:gap-4 bg-slate-950 relative">
       
       {/* WebGazer Integration */}
-      {isEyeTrackerEnabled && <EyeTracker />}
+      {isEyeTrackerEnabled && <WebcamEyeTracker />}
 
       {/* Top Bar: Buffer & Actions */}
       <div className="flex gap-2 md:gap-4 h-20 md:h-32 shrink-0">
