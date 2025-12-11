@@ -269,7 +269,10 @@ const AppContent: React.FC = () => {
     setIsEyeTrackerEnabled(false); // Disable on logout
   };
 
-  const handleClear = useCallback(() => setBuffer(''), []);
+  const handleClear = useCallback(() => {
+    setBuffer('');
+    triggerNavigationLock(500); // Lock to prevent double-clears
+  }, [triggerNavigationLock]);
 
   const handleKeyPress = useCallback((char: string) => {
     if (char === 'Backspace' || char === 'Del') {
@@ -308,6 +311,10 @@ const AppContent: React.FC = () => {
 
   const handleSpeak = () => {
     if (!buffer.trim()) return;
+    
+    // Safety lock to prevent repeat triggers if user dwells too long
+    triggerNavigationLock(1200);
+    
     speakText(buffer, language, currentUser?.settings);
     const newMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -476,7 +483,13 @@ const AppContent: React.FC = () => {
   const handleServiceSelect = (item: ServiceItem) => {
     if (item.children) {
       setCurrentServicePath(prev => [...prev, item]);
+      // Safety lock to prevent double-clicks during navigation transitions
+      triggerNavigationLock(500); 
     } else {
+      // LEAF NODE (Action)
+      // Lock interaction to prevent the "Dwell Repeat" loop the user reported
+      triggerNavigationLock(1200); 
+
       const textToSpeak = item.speechText || item.label;
       speakText(textToSpeak, language, currentUser?.settings);
       const newMsg: ChatMessage = { id: Date.now().toString(), sender: 'user', text: textToSpeak, timestamp: Date.now() };
@@ -484,10 +497,14 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleServiceBack = () => setCurrentServicePath(prev => prev.slice(0, -1));
+  const handleServiceBack = () => {
+    setCurrentServicePath(prev => prev.slice(0, -1));
+    triggerNavigationLock(500);
+  };
 
   const handleAddCustomService = async () => {
     if (!currentUser || !buffer.trim()) return;
+    triggerNavigationLock(1000); // Lock to prevent multi-add
     const newItemBase: ServiceItem = {
       id: Date.now().toString(),
       label: buffer.length > 15 ? buffer.substring(0, 12) + '...' : buffer,
