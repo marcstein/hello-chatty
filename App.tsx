@@ -10,9 +10,10 @@ import {
 import DwellButton from './components/DwellButton';
 import Keyboard from './components/Keyboard';
 import HistoryLog from './components/HistoryLog';
+import EyeTracker from './components/EyeTracker'; // Import new component
 import { InteractionProvider, useInteraction } from './context/InteractionContext';
-import { Language, ScreenMode, ChatMessage, ServiceItem, UserProfile, InteractionMode, Gender } from './types';
-import { SERVICE_TREES, TRANSLATIONS, DWELL_TIME_MS as DEFAULT_DWELL_MS, DEFAULT_ELEVEN_LABS_VOICES, ELEVEN_LABS_VOICE_NAMES, DEFAULT_INTERACTION_MODE } from './constants'; 
+import { Language, ScreenMode, ChatMessage, ServiceItem, UserProfile, InteractionMode, Gender, UserSettings } from './types';
+import { SERVICE_TREES, TRANSLATIONS, DWELL_TIME_MS as DEFAULT_DWELL_MS, DEFAULT_ELEVEN_LABS_VOICES, ELEVEN_LABS_VOICE_NAMES, DEFAULT_INTERACTION_MODE, VOICE_CLONE_SCRIPTS } from './constants'; 
 import { getPredictions, getSmartReplies, getVisualSuggestions } from './services/predictionService';
 import { speakText, speakTextAsync, getAvailableVoices, getVoicesForLanguage } from './services/ttsService';
 import { 
@@ -95,6 +96,7 @@ const AppContent: React.FC = () => {
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [predictions, setPredictions] = useState<string[]>([]);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [isEyeTrackerEnabled, setIsEyeTrackerEnabled] = useState(false);
   
   // Interaction Context
   const { mode: interactionMode, setMode: setInteractionMode, dwellTimeMs, setDwellTimeMs } = useInteraction();
@@ -155,6 +157,9 @@ const AppContent: React.FC = () => {
       setDwellTimeMs(currentUser.settings.dwellTimeMs);
     } else {
       setDwellTimeMs(DEFAULT_DWELL_MS);
+    }
+    if (currentUser?.settings?.isEyeTrackerEnabled !== undefined) {
+      setIsEyeTrackerEnabled(currentUser.settings.isEyeTrackerEnabled);
     }
     setRecordingBlob(null);
     setRecordingUrl(null);
@@ -255,6 +260,7 @@ const AppContent: React.FC = () => {
     setAuthView('LANDING');
     setBuffer('');
     setLanguage(getInitialLanguage());
+    setIsEyeTrackerEnabled(false); // Disable on logout
   };
 
   const handleClear = useCallback(() => setBuffer(''), []);
@@ -507,6 +513,21 @@ const AppContent: React.FC = () => {
     await updateUserProfile(updatedUser);
     setCurrentUser(updatedUser);
   };
+  
+  const handleEyeTrackerToggle = async () => {
+    const newState = !isEyeTrackerEnabled;
+    setIsEyeTrackerEnabled(newState);
+    // If enabling eye tracker, we should probably ensure DWELL mode is on
+    if (newState && interactionMode !== 'DWELL') {
+        setInteractionMode('DWELL');
+    }
+    
+    if (currentUser) {
+       const updatedUser = { ...currentUser, settings: { ...currentUser.settings, isEyeTrackerEnabled: newState, interactionMode: newState ? 'DWELL' : currentUser.settings.interactionMode } as UserSettings };
+       await updateUserProfile(updatedUser);
+       setCurrentUser(updatedUser);
+    }
+  };
 
   const handleDwellTimeChange = async (ms: number) => {
     setDwellTimeMs(ms);
@@ -647,6 +668,9 @@ const AppContent: React.FC = () => {
   return (
     <div className="flex flex-col h-screen p-2 md:p-4 gap-2 md:gap-4 bg-slate-950 relative">
       
+      {/* WebGazer Integration */}
+      {isEyeTrackerEnabled && <EyeTracker />}
+
       {/* Top Bar: Buffer & Actions */}
       <div className="flex gap-2 md:gap-4 h-20 md:h-32 shrink-0">
         <div className="flex-1 bg-white text-slate-900 rounded-2xl p-2 md:p-4 shadow-inner border-4 border-slate-300 overflow-hidden relative">
@@ -706,17 +730,22 @@ const AppContent: React.FC = () => {
 
           {mode === ScreenMode.SERVICES && (
             <div className="flex flex-col h-full">
-              <div className="h-12 md:h-16 flex items-center mb-2 md:mb-4 gap-2 md:gap-4 shrink-0">
-                 {currentServicePath.length > 0 && (
-                   <DwellButton onClick={handleServiceBack} className="w-24 md:w-32 h-full bg-slate-700 hover:bg-slate-600 text-sm md:text-xl font-bold">
-                     <div className="flex items-center justify-center gap-2"><ArrowLeft /> {TRANSLATIONS[language].back}</div>
-                   </DwellButton>
-                 )}
+              <div className="h-12 md:h-16 flex items-center mb-2 md:mb-4 shrink-0">
                  <h2 className="text-xl md:text-2xl font-bold text-slate-300 px-2 md:px-4 truncate">
                    {currentServicePath.length === 0 ? TRANSLATIONS[language].servicesHeader : currentServicePath[currentServicePath.length-1].label}
                  </h2>
               </div>
               <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-6 auto-rows-fr overflow-y-auto">
+                {currentServicePath.length > 0 && (
+                    <DwellButton 
+                      id="btn-service-back"
+                      onClick={handleServiceBack}
+                      className="text-xl md:text-2xl font-bold shadow-xl bg-slate-700 border-slate-600 flex flex-col items-center justify-center gap-2 md:gap-4 p-2 md:p-4"
+                    >
+                        <ArrowLeft className="w-8 h-8 md:w-12 md:h-12 opacity-90" />
+                        <span className="text-center leading-tight text-sm md:text-base">{TRANSLATIONS[language].back}</span>
+                    </DwellButton>
+                )}
                 {getCurrentServiceLevel().map((item) => {
                   const Icon = item.icon && ICON_MAP[item.icon] ? ICON_MAP[item.icon] : MessageSquare;
                   return (
@@ -770,6 +799,18 @@ const AppContent: React.FC = () => {
                         <DwellButton onClick={() => handleModeChange('DWELL')} active={interactionMode === 'DWELL'} className="flex-1 h-14 bg-slate-700 border-slate-600"><div className="flex items-center gap-2"><Eye className="w-5 h-5" /> Eye/Dwell</div></DwellButton>
                         <DwellButton onClick={() => handleModeChange('CLICK')} active={interactionMode === 'CLICK'} className="flex-1 h-14 bg-slate-700 border-slate-600"><div className="flex items-center gap-2"><MousePointer2 className="w-5 h-5" /> Mouse Mode</div></DwellButton>
                     </div>
+
+                    {/* NEW EYE TRACKING SECTION */}
+                    <h4 className="text-lg font-bold text-slate-300 mb-2 mt-6">Webcam Eye Tracking (BETA)</h4>
+                    <DwellButton onClick={handleEyeTrackerToggle} active={isEyeTrackerEnabled} className="w-full h-16 bg-slate-700 border-slate-600">
+                        <div className="flex items-center justify-center gap-3">
+                            <Camera className={isEyeTrackerEnabled ? "text-white" : "text-slate-400"} /> 
+                            <span>{isEyeTrackerEnabled ? "Enabled (Look at buttons to select)" : "Enable WebGazer (Requires Camera)"}</span>
+                        </div>
+                    </DwellButton>
+                    <p className="text-xs text-slate-500 mt-2">
+                        Powered by WebGazer.js. Ensure your face is well-lit. Calibration happens automatically as you use it, or click/look at corners to improve accuracy.
+                    </p>
                  </div>
                </div>
                
@@ -790,6 +831,55 @@ const AppContent: React.FC = () => {
                <div className="bg-slate-800 p-4 md:p-6 rounded-xl border border-slate-700 border-l-4 border-l-indigo-500">
                  <h3 className="text-xl md:text-2xl font-bold text-indigo-400 mb-2 md:mb-4 flex items-center gap-2"><Mic /> {TRANSLATIONS[language].voiceCloningIntake}</h3>
                  <p className="mb-4 text-slate-300 text-sm md:text-base leading-relaxed"><span className="text-indigo-300 font-semibold">{TRANSLATIONS[language].freeServiceDesc}</span> <a href="https://alsvoicebank.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-white font-bold text-indigo-300">alsvoicebank.com</a>.</p>
+                 
+                 {currentUser?.settings?.voiceClone?.status === 'pending' ? (
+                     <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-600 animate-in fade-in">
+                         <div className="flex items-center gap-2 text-yellow-400 font-bold mb-2">
+                             <Clock size={20} /> {TRANSLATIONS[language].statusPending}
+                         </div>
+                         <p className="text-slate-300">{TRANSLATIONS[language].pendingDesc}</p>
+                     </div>
+                 ) : (
+                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                         <p className="text-slate-300 italic border-l-2 border-slate-600 pl-3">{TRANSLATIONS[language].createCopyDesc}</p>
+                         
+                         <div className="bg-slate-950 p-4 md:p-6 rounded-xl border border-slate-700 shadow-inner">
+                             <p className="text-lg md:text-xl font-serif leading-relaxed text-slate-200">
+                                "{VOICE_CLONE_SCRIPTS[language].replace('[name]', currentUser?.name || '...')}"
+                             </p>
+                         </div>
+
+                         <div className="flex flex-wrap gap-4 pt-2">
+                             {!isRecording && !recordingUrl && (
+                                 <DwellButton onClick={handleStartRecording} className="h-16 md:h-20 px-8 bg-red-600 border-red-500 hover:bg-red-500 font-bold text-white rounded-2xl flex items-center gap-3 text-lg md:text-xl shadow-lg shadow-red-900/20">
+                                     <Mic size={24} /> {TRANSLATIONS[language].startRecording}
+                                 </DwellButton>
+                             )}
+                             
+                             {isRecording && (
+                                 <DwellButton onClick={handleStopRecording} className="h-16 md:h-20 px-8 bg-slate-800 border-red-500/50 hover:bg-slate-700 font-bold text-red-400 animate-pulse rounded-2xl flex items-center gap-3 text-lg md:text-xl w-full md:w-auto justify-center border-2">
+                                     <div className="w-4 h-4 bg-red-500 rounded-sm animate-ping" />
+                                     <Square fill="currentColor" size={20} /> {TRANSLATIONS[language].stopRecording}
+                                 </DwellButton>
+                             )}
+
+                             {recordingUrl && !isRecording && (
+                                 <div className="flex flex-wrap gap-3 w-full">
+                                     <DwellButton onClick={handlePlayRecording} className="h-16 md:h-20 px-6 bg-indigo-600 border-indigo-500 hover:bg-indigo-500 font-bold text-white rounded-2xl flex items-center gap-2 text-lg">
+                                         <Play fill="currentColor" /> {TRANSLATIONS[language].play}
+                                     </DwellButton>
+                                     <DwellButton onClick={() => { setRecordingUrl(null); setRecordingBlob(null); }} className="h-16 md:h-20 px-6 bg-slate-700 border-slate-600 hover:bg-slate-600 font-bold text-slate-300 rounded-2xl flex items-center gap-2 text-lg">
+                                         <RefreshCw /> {TRANSLATIONS[language].retake}
+                                     </DwellButton>
+                                     <DwellButton onClick={handleUploadRecording} disabled={isUploading} className="h-16 md:h-20 px-8 bg-green-600 border-green-500 hover:bg-green-500 font-bold text-white rounded-2xl flex items-center gap-2 text-lg flex-1 shadow-lg shadow-green-900/20">
+                                         {isUploading ? <Loader2 className="animate-spin" /> : <Upload />} 
+                                         {TRANSLATIONS[language].submitRequest}
+                                     </DwellButton>
+                                 </div>
+                             )}
+                         </div>
+                     </div>
+                 )}
                </div>
              </div>
           )}
