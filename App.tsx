@@ -476,6 +476,7 @@ const AppContent: React.FC = () => {
     triggerNavigationLock(500);
   };
 
+  // Add Button Logic for SERVICES screen
   const handleAddCustomService = async () => {
     if (!currentUser || !buffer.trim()) return;
     triggerNavigationLock(1000); 
@@ -488,6 +489,8 @@ const AppContent: React.FC = () => {
     };
     const updatedUser = JSON.parse(JSON.stringify(currentUser)) as UserProfile;
     const languages = Object.keys(updatedUser.serviceTrees) as Language[];
+    
+    // Add to current path level for all languages
     languages.forEach(lang => {
       let targetList = updatedUser.serviceTrees[lang];
       let pathIsValid = true;
@@ -498,9 +501,42 @@ const AppContent: React.FC = () => {
       }
       if (pathIsValid) targetList.push({ ...newItemBase });
     });
+    
     await updateUserProfile(updatedUser);
     setCurrentUser(updatedUser);
     setBuffer(''); 
+  };
+  
+  // Add Button Logic for SETTINGS screen (Adds to root)
+  const handleSettingsAddCustomService = async () => {
+    if (!currentUser) return;
+    
+    if (!buffer.trim()) {
+        speakText("Please type the button name in the keyboard first.", language, currentUser.settings);
+        setMode(ScreenMode.KEYBOARD);
+        return;
+    }
+
+    const newItemBase: ServiceItem = {
+      id: Date.now().toString(),
+      label: buffer.length > 15 ? buffer.substring(0, 12) + '...' : buffer,
+      speechText: buffer,
+      isCustom: true,
+      color: 'bg-fuchsia-700'
+    };
+    
+    const updatedUser = JSON.parse(JSON.stringify(currentUser)) as UserProfile;
+    const languages = Object.keys(updatedUser.serviceTrees) as Language[];
+    
+    // Always add to Root Level in Settings Manager
+    languages.forEach(lang => {
+      updatedUser.serviceTrees[lang].push({ ...newItemBase });
+    });
+    
+    await updateUserProfile(updatedUser);
+    setCurrentUser(updatedUser);
+    setBuffer('');
+    speakText("Button added to main menu.", language, currentUser.settings);
   };
 
   const getCustomButtons = () => {
@@ -794,12 +830,27 @@ const AppContent: React.FC = () => {
                <div className="bg-slate-800 p-4 md:p-6 rounded-xl border border-slate-700 border-l-4 border-l-fuchsia-500">
                  <h3 className="text-xl md:text-2xl font-bold text-fuchsia-400 mb-2 md:mb-4 flex items-center gap-2"><Edit3 /> Custom Button Manager</h3>
                  <p className="text-slate-300 mb-4">
-                     To add a new button: 
-                     <span className="text-white font-bold mx-1">1. Type phrase in Keyboard</span> → 
-                     <span className="text-white font-bold mx-1">2. Go to Services</span> → 
-                     <span className="text-white font-bold mx-1">3. Click Add</span>
+                     Manage your custom buttons here. To create a new one, type a phrase in the Keyboard first.
                  </p>
                  
+                 <div className="mb-4">
+                    {buffer.trim().length > 0 ? (
+                        <DwellButton 
+                            onClick={handleSettingsAddCustomService} 
+                            className="w-full h-16 bg-fuchsia-800 border-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold text-lg rounded-xl flex items-center justify-center gap-3"
+                        >
+                            <Plus size={24} /> Add "{buffer.length > 20 ? buffer.substring(0,18)+'...' : buffer}" as New Button
+                        </DwellButton>
+                    ) : (
+                        <DwellButton 
+                            onClick={handleSettingsAddCustomService} 
+                            className="w-full h-16 bg-slate-700 border-slate-600 hover:bg-slate-600 text-slate-300 font-bold text-lg rounded-xl flex items-center justify-center gap-3 border-dashed border-2"
+                        >
+                            <Plus size={24} className="opacity-50" /> Create New Button (Go to Keyboard)
+                        </DwellButton>
+                    )}
+                 </div>
+
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                      {getCustomButtons().length === 0 ? (
                          <div className="col-span-full p-4 text-slate-500 text-center italic border border-dashed border-slate-700 rounded-lg">
