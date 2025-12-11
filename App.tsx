@@ -10,7 +10,7 @@ import {
 import DwellButton from './components/DwellButton';
 import Keyboard from './components/Keyboard';
 import HistoryLog from './components/HistoryLog';
-import EyeTracker from './components/EyeTracker'; // Import new component
+import EyeTracker from './components/EyeTracker';
 import { InteractionProvider, useInteraction } from './context/InteractionContext';
 import { Language, ScreenMode, ChatMessage, ServiceItem, UserProfile, InteractionMode, Gender, UserSettings } from './types';
 import { SERVICE_TREES, TRANSLATIONS, DWELL_TIME_MS as DEFAULT_DWELL_MS, DEFAULT_ELEVEN_LABS_VOICES, ELEVEN_LABS_VOICE_NAMES, DEFAULT_INTERACTION_MODE, VOICE_CLONE_SCRIPTS } from './constants'; 
@@ -740,7 +740,7 @@ const AppContent: React.FC = () => {
                     <DwellButton 
                       id="btn-service-back"
                       onClick={handleServiceBack}
-                      className="text-xl md:text-2xl font-bold shadow-xl bg-slate-700 border-slate-600 flex flex-col items-center justify-center gap-2 md:gap-4 p-2 md:p-4"
+                      className="text-xl md:text-2xl font-bold shadow-xl bg-slate-800 border-4 border-amber-500 hover:border-amber-400 flex flex-col items-center justify-center gap-2 md:gap-4 p-2 md:p-4"
                     >
                         <ArrowLeft className="w-8 h-8 md:w-12 md:h-12 opacity-90" />
                         <span className="text-center leading-tight text-sm md:text-base">{TRANSLATIONS[language].back}</span>
