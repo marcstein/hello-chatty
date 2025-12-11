@@ -1,16 +1,14 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   ArrowLeft, MessageSquare, Menu, Volume2, Trash2, Settings, Plus, User, LogOut, Save, Cloud, Key, Loader2, Lock, Unlock, RefreshCw, Mail,
   Utensils, Droplets, Coffee, GlassWater, Bed, Smile, ThermometerSun, ThermometerSnowflake, AlertCircle, ShowerHead, Bath, Sparkles, CupSoda,
   Mic, Square, Play, Upload, HeartHandshake, Camera, Aperture, X,
   Heart, Users, Lightbulb, Tv, Music, Gamepad2, Stethoscope, Pill, Syringe, Siren, ThumbsUp, ThumbsDown, Clock, XOctagon, Fan, Sun, Moon,
-  Phone, BookOpen, Armchair, Eye, MousePointer2, Timer, ChevronDown, ChevronRight, ExternalLink
+  Phone, BookOpen, Armchair, Eye, MousePointer2, Timer, ChevronDown, ChevronRight, ExternalLink, Target
 } from 'lucide-react';
 import DwellButton from './components/DwellButton';
 import Keyboard from './components/Keyboard';
 import HistoryLog from './components/HistoryLog';
-// EyeTracker components removed to fix build issues
 import { InteractionProvider, useInteraction } from './context/InteractionContext';
 import { Language, ScreenMode, ChatMessage, ServiceItem, UserProfile, InteractionMode, Gender, UserSettings } from './types';
 import { SERVICE_TREES, TRANSLATIONS, DWELL_TIME_MS as DEFAULT_DWELL_MS, DEFAULT_ELEVEN_LABS_VOICES, ELEVEN_LABS_VOICE_NAMES, DEFAULT_INTERACTION_MODE, VOICE_CLONE_SCRIPTS } from './constants'; 
@@ -96,7 +94,8 @@ const AppContent: React.FC = () => {
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [predictions, setPredictions] = useState<string[]>([]);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  // Eye tracking state kept for type compatibility but feature disabled
+  
+  // Eye tracking state - Kept in state for compatibility but feature disabled
   const [isEyeTrackerEnabled, setIsEyeTrackerEnabled] = useState(false);
   
   // Interaction Context
@@ -163,9 +162,6 @@ const AppContent: React.FC = () => {
       setDwellTimeMs(currentUser.settings.dwellTimeMs);
     } else {
       setDwellTimeMs(DEFAULT_DWELL_MS);
-    }
-    if (currentUser?.settings?.isEyeTrackerEnabled !== undefined) {
-      setIsEyeTrackerEnabled(currentUser.settings.isEyeTrackerEnabled);
     }
     setRecordingBlob(null);
     setRecordingUrl(null);
@@ -266,7 +262,7 @@ const AppContent: React.FC = () => {
     setAuthView('LANDING');
     setBuffer('');
     setLanguage(getInitialLanguage());
-    setIsEyeTrackerEnabled(false); // Disable on logout
+    setIsEyeTrackerEnabled(false); 
   };
 
   const handleClear = useCallback(() => {
@@ -537,21 +533,7 @@ const AppContent: React.FC = () => {
     setCurrentUser(updatedUser);
   };
   
-  // Feature disabled - toggle logic kept for code compatibility if needed later
-  const handleEyeTrackerToggle = async () => {
-    const newState = !isEyeTrackerEnabled;
-    setIsEyeTrackerEnabled(newState);
-    // If enabling eye tracker, we should probably ensure DWELL mode is on
-    if (newState && interactionMode !== 'DWELL') {
-        setInteractionMode('DWELL');
-    }
-    
-    if (currentUser) {
-       const updatedUser = { ...currentUser, settings: { ...currentUser.settings, isEyeTrackerEnabled: newState, interactionMode: newState ? 'DWELL' : currentUser.settings.interactionMode } as UserSettings };
-       await updateUserProfile(updatedUser);
-       setCurrentUser(updatedUser);
-    }
-  };
+  // Eye tracker disabled per request
 
   const handleDwellTimeChange = async (ms: number) => {
     setDwellTimeMs(ms);
@@ -692,7 +674,7 @@ const AppContent: React.FC = () => {
   return (
     <div className="flex flex-col h-screen p-2 md:p-4 gap-2 md:gap-4 bg-slate-950 relative">
       
-      {/* Eye Tracker Component Removed to fix build errors. Feature disabled. */}
+      {/* Eye Tracker - Disabled */}
 
       {/* Top Bar: Buffer & Actions */}
       <div className="flex gap-2 md:gap-4 h-20 md:h-32 shrink-0">
@@ -758,12 +740,12 @@ const AppContent: React.FC = () => {
                    {currentServicePath.length === 0 ? TRANSLATIONS[language].servicesHeader : currentServicePath[currentServicePath.length-1].label}
                  </h2>
               </div>
-              <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-6 auto-rows-fr overflow-y-auto">
+              <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-6 auto-rows-min overflow-y-auto pb-4">
                 {currentServicePath.length > 0 && (
                     <DwellButton 
                       id="btn-service-back"
                       onClick={handleServiceBack}
-                      className="text-xl md:text-2xl font-bold shadow-xl bg-slate-800 border-4 border-amber-500 hover:border-amber-400 flex flex-col items-center justify-center gap-2 md:gap-4 p-2 md:p-4"
+                      className="text-xl md:text-2xl font-bold shadow-xl bg-slate-800 border-4 border-amber-500 hover:border-amber-400 flex flex-col items-center justify-center gap-2 md:gap-4 p-2 md:p-4 min-h-[140px]"
                     >
                         <ArrowLeft className="w-8 h-8 md:w-12 md:h-12 opacity-90" />
                         <span className="text-center leading-tight text-sm md:text-base">{TRANSLATIONS[language].back}</span>
@@ -776,7 +758,7 @@ const AppContent: React.FC = () => {
                       key={item.id} 
                       id={`service-${item.id}`}
                       onClick={() => handleServiceSelect(item)} 
-                      className={`text-xl md:text-2xl font-bold shadow-xl ${item.color || 'bg-slate-700'} ${item.isCustom ? 'border-fuchsia-400 border-2' : ''} flex flex-col items-center justify-center gap-2 md:gap-4 p-2 md:p-4`}
+                      className={`text-xl md:text-2xl font-bold shadow-xl ${item.color || 'bg-slate-700'} ${item.isCustom ? 'border-fuchsia-400 border-2' : ''} flex flex-col items-center justify-center gap-2 md:gap-4 p-2 md:p-4 min-h-[140px]`}
                     >
                       <Icon className="w-8 h-8 md:w-12 md:h-12 opacity-90" />
                       <span className="text-center leading-tight text-sm md:text-base">{item.label}</span>
@@ -788,7 +770,7 @@ const AppContent: React.FC = () => {
                     <DwellButton 
                         id="btn-add-service"
                         onClick={handleAddCustomService} 
-                        className="text-fuchsia-300 border-2 border-dashed border-fuchsia-500/50 bg-fuchsia-900/20 hover:bg-fuchsia-900/40 rounded-xl"
+                        className="text-fuchsia-300 border-2 border-dashed border-fuchsia-500/50 bg-fuchsia-900/20 hover:bg-fuchsia-900/40 rounded-xl min-h-[140px]"
                     >
                         <div className="flex flex-col items-center justify-center gap-2 p-2">
                              <Plus className="w-8 h-8 md:w-10 md:h-10 animate-pulse" />
@@ -796,9 +778,15 @@ const AppContent: React.FC = () => {
                         </div>
                     </DwellButton>
                 ) : (
-                    <div className="flex items-center justify-center text-slate-600 border-2 border-dashed border-slate-800 rounded-xl">
-                        <span className="text-center text-xs md:text-sm p-2 md:p-4">Type in keyboard to add custom buttons here</span>
-                    </div>
+                    <DwellButton 
+                        onClick={() => { setMode(ScreenMode.KEYBOARD); speakText("Type your phrase", language, currentUser?.settings); }} 
+                        className="text-slate-400 border-2 border-dashed border-slate-700 hover:border-slate-500 bg-slate-900/50 hover:bg-slate-800 rounded-xl min-h-[140px]"
+                    >
+                        <div className="flex flex-col items-center justify-center gap-2 p-2">
+                             <Plus className="w-8 h-8 md:w-10 md:h-10 opacity-50" />
+                             <span className="text-center text-xs md:text-sm font-bold">Click to add new button</span>
+                        </div>
+                    </DwellButton>
                 )}
               </div>
             </div>
@@ -822,8 +810,6 @@ const AppContent: React.FC = () => {
                         <DwellButton onClick={() => handleModeChange('DWELL')} active={interactionMode === 'DWELL'} className="flex-1 h-14 bg-slate-700 border-slate-600"><div className="flex items-center gap-2"><Eye className="w-5 h-5" /> Eye/Dwell</div></DwellButton>
                         <DwellButton onClick={() => handleModeChange('CLICK')} active={interactionMode === 'CLICK'} className="flex-1 h-14 bg-slate-700 border-slate-600"><div className="flex items-center gap-2"><MousePointer2 className="w-5 h-5" /> Mouse Mode</div></DwellButton>
                     </div>
-
-                    {/* EYE TRACKING SECTION REMOVED FOR BUILD STABILITY */}
                  </div>
                </div>
                
