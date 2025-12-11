@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useRef, useCallback } from 'react';
 import { InteractionMode } from '../types';
 import { DWELL_TIME_MS as DEFAULT_DWELL_MS, DEFAULT_INTERACTION_MODE } from '../constants';
 
@@ -52,7 +52,7 @@ export const InteractionProvider: React.FC<InteractionProviderProps> = ({ childr
   const [isInteractionLocked, setIsInteractionLocked] = useState(false);
   const lockTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const triggerNavigationLock = (durationMs = 1000) => {
+  const triggerNavigationLock = useCallback((durationMs = 1000) => {
     setIsInteractionLocked(true);
     if (lockTimeoutRef.current) {
         clearTimeout(lockTimeoutRef.current);
@@ -60,7 +60,7 @@ export const InteractionProvider: React.FC<InteractionProviderProps> = ({ childr
     lockTimeoutRef.current = setTimeout(() => {
         setIsInteractionLocked(false);
     }, durationMs);
-  };
+  }, []);
 
   return (
     <InteractionContext.Provider value={{ 

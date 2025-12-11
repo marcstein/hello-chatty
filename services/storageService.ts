@@ -3,43 +3,71 @@ import { createClient } from '@supabase/supabase-js';
 import { UserProfile, Language, Gender } from '../types';
 import { SERVICE_TREES, DEFAULT_ELEVEN_LABS_VOICES } from '../constants';
 
-// --- CONFIGURATION ---
-// These are now injected via Vite at build time
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || '';
-const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || '';
+// --- ROBUST ENV VAR ACCESS ---
+// Helper to read env vars from either Vite's import.meta.env or process.env
+const getEnvVar = (key: string, fallbackKey?: string): string => {
+  let val = '';
+  
+  // 1. Try import.meta.env (Vite standard)
+  try {
+    // @ts-ignore
+    if (typeof import.meta !== 'undefined' && import.meta.env) {
+      // @ts-ignore
+      val = import.meta.env[key] || (fallbackKey ? import.meta.env[fallbackKey] : '');
+    }
+  } catch (e) {}
+
+  // 2. Try process.env (Shim or Node)
+  if (!val && typeof process !== 'undefined' && process.env) {
+    val = process.env[key] || (fallbackKey ? process.env[fallbackKey] : '') || '';
+  }
+  
+  return val;
+};
+
+// Load Config
+const SUPABASE_URL = getEnvVar('VITE_SUPABASE_URL', 'SUPABASE_URL');
+const SUPABASE_KEY = getEnvVar('VITE_SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY');
 
 const LOCAL_STORAGE_KEY = 'chatty_users_v2';
 const SESSION_KEY = 'chatty_session_v1';
 
-// Helper to check if Supabase is properly configured
+// --- CONFIG CHECK ---
 const isSupabaseConfigured = () => {
-  // Check if we have a key and the URL is not a placeholder
-  return !!SUPABASE_KEY && 
-         SUPABASE_KEY !== 'placeholder' &&
-         !!SUPABASE_URL;
+  const hasUrl = !!SUPABASE_URL && SUPABASE_URL !== 'undefined';
+  const hasKey = !!SUPABASE_KEY && SUPABASE_KEY !== 'placeholder' && SUPABASE_KEY !== 'undefined';
+  
+  if (!hasUrl || !hasKey) {
+     // Only log this warning once on init if missing
+     if (typeof window !== 'undefined' && !(window as any)._sb_warned) {
+         console.warn(`[Storage] Supabase not fully configured. Using LocalStorage fallback.`);
+         console.warn(`[Storage] URL: ${hasUrl ? 'OK' : 'MISSING'}, KEY: ${hasKey ? 'OK' : 'MISSING'}`);
+         (window as any)._sb_warned = true;
+     }
+     return false;
+  }
+  return true;
 };
 
-// Helper for UUID generation (Required for Supabase ID columns)
+// Helper for UUID generation
 const generateUUID = () => {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
         return crypto.randomUUID();
     }
-    // Fallback for older environments
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
 };
 
-// Initialize Supabase Client
-// using the specific project URL as fallback based on your dashboard link
+// Initialize Client
 export const supabase = createClient(
   SUPABASE_URL || 'https://xyyhcrfjxghjrwehbpap.supabase.co', 
   SUPABASE_KEY || 'placeholder', 
   { auth: { persistSession: false } }
 );
 
-// --- LOCAL STORAGE HELPERS (Fallback) ---
+// --- LOCAL STORAGE HELPERS ---
 
 const getLocalUsers = (): UserProfile[] => {
   try {
@@ -82,18 +110,13 @@ export const getSessionUserId = (): string | null => {
 // --- API METHODS ---
 
 export const getStoredUsers = async (): Promise<UserProfile[]> => {
-  // Fallback if not configured
-  if (!isSupabaseConfigured()) {
-    return getLocalUsers();
-  }
+  if (!isSupabaseConfigured()) return getLocalUsers();
 
   try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('data');
+    const { data, error } = await supabase.from('profiles').select('data');
 
     if (error) {
-      console.error("Supabase Error (getStoredUsers):", error.message);
+      console.error("Supabase SELECT Error:", error.message);
       return getLocalUsers();
     }
 
@@ -106,9 +129,7 @@ export const getStoredUsers = async (): Promise<UserProfile[]> => {
 };
 
 export const getUserById = async (userId: string): Promise<UserProfile | null> => {
-    if (userId === 'demo_user') {
-        return createDemoUser();
-    }
+    if (userId === 'demo_user') return createDemoUser();
 
     if (!isSupabaseConfigured()) {
         const users = getLocalUsers();
@@ -130,20 +151,18 @@ export const getUserById = async (userId: string): Promise<UserProfile | null> =
     }
 };
 
-// Helper to create the demo user object on the fly
 const createDemoUser = (): UserProfile => {
     return {
         id: 'demo_user',
         email: 'demo@chatty.ai',
         name: 'Demo User',
         password: 'demo123',
-        gender: 'female', // Changed to female to match Sabrina voice for cohesive demo
+        gender: 'female',
         settings: {
             language: Language.ENGLISH,
-            interactionMode: 'CLICK', // Mouse mode by default for easier video recording
+            interactionMode: 'DWELL', // CHANGED: Default to DWELL for demo
             dwellTimeMs: 800,
             elevenLabs: {
-                // Default to Sabrina for female
                 voiceId: DEFAULT_ELEVEN_LABS_VOICES[Language.ENGLISH].female
             }
         },
@@ -156,8 +175,6 @@ export const loginUser = async (email: string, password: string): Promise<UserPr
     const cleanEmail = email.trim().toLowerCase();
     const cleanPass = password.trim();
 
-    // --- DEMO USER BYPASS ---
-    // Allows instant login for the demo video without needing DB entry
     if (cleanEmail === 'demo@chatty.ai' && cleanPass === 'demo123') {
         return createDemoUser();
     }
@@ -168,8 +185,6 @@ export const loginUser = async (email: string, password: string): Promise<UserPr
     }
 
     try {
-        // Query jsonb column 'data' for the email
-        // Note: This requires the 'data' column to be queryable or RLS to allow access
         const { data, error } = await supabase
             .from('profiles')
             .select('data')
@@ -177,17 +192,15 @@ export const loginUser = async (email: string, password: string): Promise<UserPr
             .single();
 
         if (error || !data) {
-            console.warn("Login failed or user not found:", error?.message);
+            console.warn("Login: User not found or DB error:", error?.message);
             return null;
         }
 
         const user = data.data as UserProfile;
-        // Verify password
         if (user.password === cleanPass) {
             return user;
         }
         return null;
-
     } catch (e) {
         console.error("Login exception:", e);
         return null;
@@ -195,21 +208,20 @@ export const loginUser = async (email: string, password: string): Promise<UserPr
 };
 
 export const createNewUser = async (email: string, name: string, password: string, language: Language = Language.ENGLISH, gender?: Gender): Promise<UserProfile> => {
-  
-  // Set default voice based on gender and language
   let defaultVoiceId = '';
   if (gender) {
     defaultVoiceId = DEFAULT_ELEVEN_LABS_VOICES[language][gender] || '';
   }
 
   const newUser: UserProfile = {
-    id: generateUUID(), // Using UUID instead of timestamp for DB compatibility
+    id: generateUUID(),
     email: email.trim().toLowerCase(),
     name: name.trim(),
     password: password.trim(),
     gender: gender,
     settings: {
       language: language,
+      interactionMode: 'DWELL', // Set default for new users to DWELL
       elevenLabs: {
         voiceId: defaultVoiceId
       }
@@ -218,12 +230,10 @@ export const createNewUser = async (email: string, name: string, password: strin
     createdAt: Date.now()
   };
 
+  // 1. Fallback Mode
   if (!isSupabaseConfigured()) {
-    console.warn("⚠️ SUPABASE NOT CONFIGURED or MISSING KEYS. Falling back to LocalStorage.");
-    console.warn("Please check your .env file and ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set.");
-    
+    console.log("[Storage] Saving new user to LocalStorage (Env vars missing).");
     const users = getLocalUsers();
-    // Check duplicate email locally
     if (users.some(u => u.email === newUser.email)) {
         throw new Error("User with this email already exists locally.");
     }
@@ -233,8 +243,9 @@ export const createNewUser = async (email: string, name: string, password: strin
     return newUser;
   }
 
+  // 2. Supabase Mode
   try {
-    // Check duplicate email in Supabase (basic check)
+    // Check duplicates
     const { data: existing } = await supabase
         .from('profiles')
         .select('id')
@@ -245,7 +256,10 @@ export const createNewUser = async (email: string, name: string, password: strin
         throw new Error("Account with this email already exists.");
     }
 
-    const { error } = await supabase
+    // Insert
+    console.log(`[Storage] Attempting to insert user ${newUser.id} into 'profiles' table...`);
+    
+    const { error, status, statusText } = await supabase
       .from('profiles')
       .insert({
         id: newUser.id,
@@ -253,22 +267,23 @@ export const createNewUser = async (email: string, name: string, password: strin
       });
 
     if (error) {
-      console.error("Supabase Insert Error:", error.message, error.details);
-      throw error;
+      console.error("[Storage] Supabase Insert Failed:", error);
+      console.error(`[Storage] Status: ${status} ${statusText}`);
+      console.error(`[Storage] Hint: Check if 'profiles' table exists and RLS policies allow INSERT for anon role.`);
+      throw new Error(`Database Error: ${error.message}`);
     }
 
+    console.log("[Storage] User successfully created in Supabase.");
     return newUser;
+
   } catch (e) {
-    console.error("Failed to create user in Supabase:", e);
+    console.error("[Storage] Critical failure in createNewUser:", e);
     throw e;
   }
 };
 
 export const updateUserProfile = async (updatedUser: UserProfile): Promise<void> => {
-  // If this is the demo user, allow "saving" to memory/local only to prevent errors
-  if (updatedUser.id === 'demo_user') {
-      return; 
-  }
+  if (updatedUser.id === 'demo_user') return;
 
   if (!isSupabaseConfigured()) {
     const users = getLocalUsers();
@@ -287,7 +302,7 @@ export const updateUserProfile = async (updatedUser: UserProfile): Promise<void>
       .eq('id', updatedUser.id);
 
     if (error) {
-      console.error("Supabase Error (updateUserProfile):", error.message);
+      console.error("Supabase Update Error:", error.message);
     }
   } catch (e) {
     console.error("Failed to update user:", e);
@@ -309,7 +324,7 @@ export const deleteUser = async (userId: string): Promise<void> => {
       .eq('id', userId);
 
     if (error) {
-      console.error("Supabase Error (deleteUser):", error.message);
+      console.error("Supabase Delete Error:", error.message);
     }
   } catch (e) {
     console.error("Failed to delete user:", e);
@@ -317,9 +332,7 @@ export const deleteUser = async (userId: string): Promise<void> => {
 };
 
 export const uploadVoiceSample = async (userId: string, audioBlob: Blob): Promise<string | null> => {
-  if (userId === 'demo_user') {
-      return "https://mock.url/demo-sample.webm";
-  }
+  if (userId === 'demo_user') return "https://mock.url/demo-sample.webm";
 
   if (!isSupabaseConfigured()) {
     console.warn("Storage not configured. Returning mock URL.");
@@ -329,20 +342,15 @@ export const uploadVoiceSample = async (userId: string, audioBlob: Blob): Promis
   const fileName = `${userId}_${Date.now()}.webm`;
   
   try {
-    // Attempt upload to 'voice_samples' bucket
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('voice_samples')
-      .upload(fileName, audioBlob, {
-        contentType: 'audio/webm'
-      });
+      .upload(fileName, audioBlob, { contentType: 'audio/webm' });
 
     if (error) {
-       console.error("Storage upload failed (bucket might be missing):", error);
-       // Return null to signify upload failure but we can still soft-fail in UI
+       console.error("Storage upload failed:", error);
        return null;
     }
     
-    // Get public URL
     const { data: publicUrlData } = supabase.storage
         .from('voice_samples')
         .getPublicUrl(fileName);

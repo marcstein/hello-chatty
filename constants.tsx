@@ -1,7 +1,7 @@
 
 import { Language, ServiceItem, Gender, DemoStep, InteractionMode } from './types';
 
-export const DEFAULT_INTERACTION_MODE: InteractionMode = 'CLICK'; // Change to 'DWELL' for eye-tracking default
+export const DEFAULT_INTERACTION_MODE: InteractionMode = 'DWELL'; // Default to DWELL for eye-tracking readiness
 
 export const DWELL_TIME_MS = 800; // Time in ms to trigger a click
 
@@ -267,361 +267,217 @@ export const TRANSLATIONS = {
   }
 };
 
-const COMMON_ENGLISH = [
-  {
-    id: 'quick_res',
-    label: 'Quick Chat',
-    icon: 'message',
-    color: 'bg-slate-600',
-    children: [
-      { id: 'yes', label: 'Yes', icon: 'thumbs-up', speechText: 'Yes.' },
-      { id: 'no', label: 'No', icon: 'thumbs-down', speechText: 'No.' },
-      { id: 'thanks', label: 'Thanks', icon: 'smile', speechText: 'Thank you.' },
-      { id: 'wait', label: 'Wait', icon: 'clock', speechText: 'Please wait a moment.' },
-      { id: 'stop', label: 'Stop', icon: 'stop', speechText: 'Please stop.' },
-      { id: 'dont_know', label: 'Don\'t Know', icon: 'help-circle', speechText: 'I do not know.' },
-    ]
-  },
-  {
-    id: 'food_drink',
-    label: 'Food & Drink',
-    icon: 'utensils',
-    color: 'bg-orange-700',
-    children: [
-        { id: 'water', label: 'Water', icon: 'glass-water', speechText: 'I would like some water.' },
-        { id: 'coffee', label: 'Coffee', icon: 'coffee', speechText: 'I would like some coffee.' },
-        { id: 'hungry', label: 'Hungry', icon: 'utensils', speechText: 'I am hungry.' },
-        { id: 'thirsty', label: 'Thirsty', icon: 'droplets', speechText: 'I am thirsty.' },
-    ]
-  },
+const COMMON_ENGLISH: ServiceItem[] = [
   {
     id: 'emergency',
-    label: 'EMERGENCY',
+    label: 'Emergency',
     icon: 'siren',
-    color: 'bg-red-700',
+    color: 'bg-red-600',
     children: [
-      { id: 'help', label: 'HELP ME', icon: 'alert-circle', speechText: 'Help! I need help immediately!' },
-      { id: 'breath', label: 'Can\'t Breathe', icon: 'wind', speechText: 'I cannot breathe properly.' },
-      { id: 'choke', label: 'Choking', icon: 'alert-circle', speechText: 'I am choking.' },
-      { id: 'pain_sev', label: 'Severe Pain', icon: 'alert-circle', speechText: 'I am in severe pain.' },
-      { id: 'fall', label: 'Falling', icon: 'alert-circle', speechText: 'I feel like I am falling.' },
+      { id: 'pain_sev', label: 'Severe Pain', speechText: 'I am in severe pain.', icon: 'thermometer-sun', color: 'bg-red-500' },
+      { id: 'cant_breathe', label: 'Can\'t Breathe', speechText: 'I am having trouble breathing.', icon: 'fan', color: 'bg-red-500' },
+      { id: 'fall', label: 'I Fell', speechText: 'I fell and need help up.', icon: 'alert-circle', color: 'bg-red-500' },
+      { id: 'suction_em', label: 'Need Suction', speechText: 'I need suction immediately.', icon: 'stethoscope', color: 'bg-red-500' }
     ]
   },
   {
-    id: 'comfort',
-    label: 'Comfort',
-    icon: 'bed',
-    color: 'bg-teal-700',
+    id: 'needs',
+    label: 'Needs',
+    icon: 'coffee',
+    color: 'bg-blue-600',
     children: [
-        { id: 'lights', label: 'Lights', icon: 'lightbulb', speechText: 'Please change the lights.' },
-        { id: 'hot', label: 'Too Hot', icon: 'thermometer-sun', speechText: 'I am too hot.' },
-        { id: 'cold', label: 'Too Cold', icon: 'thermometer-snowflake', speechText: 'I am too cold.' },
-        { id: 'position', label: 'Position', icon: 'bed', speechText: 'I need to change my position.' },
-        { id: 'shower', label: 'Shower', icon: 'shower-head', speechText: 'I would like a shower.' },
+      { id: 'water', label: 'Water', speechText: 'Can I have some water please?', icon: 'glass-water' },
+      { id: 'food', label: 'Food', speechText: 'I am hungry.', icon: 'utensils' },
+      { id: 'toilet', label: 'Bathroom', speechText: 'I need to use the bathroom.', icon: 'bath' },
+      { id: 'position', label: 'Position', speechText: 'Please help me change position.', icon: 'armchair' },
+      { id: 'cold', label: 'Too Cold', speechText: 'I am cold.', icon: 'thermometer-snowflake' },
+      { id: 'hot', label: 'Too Hot', speechText: 'I am hot.', icon: 'thermometer-sun' }
     ]
   },
   {
-    id: 'emotions',
-    label: 'Emotions',
-    icon: 'heart',
-    color: 'bg-pink-700',
+    id: 'social',
+    label: 'Social',
+    icon: 'users',
+    color: 'bg-purple-600',
     children: [
-      { id: 'happy', label: 'Happy', icon: 'smile', speechText: 'I am happy.' },
-      { id: 'sad', label: 'Sad', icon: 'frown', speechText: 'I feel sad.' },
-      { id: 'love', label: 'I Love You', icon: 'heart', speechText: 'I love you.' },
+      { id: 'hello', label: 'Hello', speechText: 'Hello, good to see you.', icon: 'message' },
+      { id: 'thanks', label: 'Thanks', speechText: 'Thank you very much.', icon: 'thumbs-up' },
+      { id: 'yes', label: 'Yes', speechText: 'Yes, please.', icon: 'thumbs-up' },
+      { id: 'no', label: 'No', speechText: 'No, thank you.', icon: 'thumbs-down' },
+      { id: 'love', label: 'Love You', speechText: 'I love you.', icon: 'heart' }
     ]
   },
   {
     id: 'activities',
     label: 'Activities',
-    icon: 'gamepad',
-    color: 'bg-purple-700',
+    icon: 'tv',
+    color: 'bg-amber-600',
     children: [
-        { id: 'tv', label: 'TV', icon: 'tv', speechText: 'I want to watch TV.' },
-        { id: 'music', label: 'Music', icon: 'music', speechText: 'I want to listen to music.' },
-        { id: 'read', label: 'Read', icon: 'book', speechText: 'I want to read.' },
-    ]
-  },
-  {
-    id: 'people',
-    label: 'People',
-    icon: 'users',
-    color: 'bg-blue-700',
-    children: [
-        { id: 'doc', label: 'Doctor', icon: 'stethoscope', speechText: 'I need a doctor.' },
-        { id: 'nurse', label: 'Nurse', icon: 'user', speechText: 'I need a nurse.' },
-        { id: 'family', label: 'Family', icon: 'users', speechText: 'Call my family.' },
-        { id: 'phone', label: 'Phone', icon: 'phone', speechText: 'Can I use the phone?' },
+        { id: 'music', label: 'Music', speechText: 'I would like to listen to music.', icon: 'music' },
+        { id: 'tv_c', label: 'TV', speechText: 'Please turn on the TV.', icon: 'tv' },
+        { id: 'lights', label: 'Lights', speechText: 'Can you adjust the lights?', icon: 'lightbulb' }
     ]
   }
 ];
 
-const COMMON_SPANISH = [
-  {
-    id: 'quick_res',
-    label: 'Chat Rápido',
-    icon: 'message',
-    color: 'bg-slate-600',
-    children: [
-      { id: 'yes', label: 'Sí', icon: 'thumbs-up', speechText: 'Sí.' },
-      { id: 'no', label: 'No', icon: 'thumbs-down', speechText: 'No.' },
-      { id: 'thanks', label: 'Gracias', icon: 'smile', speechText: 'Gracias.' },
-      { id: 'wait', label: 'Espera', icon: 'clock', speechText: 'Espera un momento.' },
-      { id: 'stop', label: 'Para', icon: 'stop', speechText: 'Para, por favor.' },
-      { id: 'dont_know', label: 'No sé', icon: 'message', speechText: 'No lo sé.' },
-    ]
-  },
-  {
-    id: 'food_drink',
-    label: 'Comida',
-    icon: 'utensils',
-    color: 'bg-orange-700',
-    children: [
-        { id: 'water', label: 'Agua', icon: 'glass-water', speechText: 'Quiero agua.' },
-        { id: 'coffee', label: 'Café', icon: 'coffee', speechText: 'Quiero café.' },
-        { id: 'hungry', label: 'Hambre', icon: 'utensils', speechText: 'Tengo hambre.' },
-        { id: 'thirsty', label: 'Sed', icon: 'droplets', speechText: 'Tengo sed.' },
-    ]
-  },
-  {
-    id: 'emergency',
-    label: 'EMERGENCIA',
-    icon: 'siren',
-    color: 'bg-red-700',
-    children: [
-      { id: 'help', label: 'AYUDA', icon: 'alert-circle', speechText: '¡Ayuda! ¡Necesito ayuda!' },
-      { id: 'breath', label: 'Respirar', icon: 'wind', speechText: 'No puedo respirar bien.' },
-      { id: 'choke', label: 'Ahogo', icon: 'alert-circle', speechText: 'Me estoy ahogando.' },
-      { id: 'pain_sev', label: 'Dolor', icon: 'alert-circle', speechText: 'Tengo mucho dolor.' },
-      { id: 'fall', label: 'Caída', icon: 'alert-circle', speechText: 'Siento que me caigo.' },
-    ]
-  },
-  {
-    id: 'comfort',
-    label: 'Confort',
-    icon: 'bed',
-    color: 'bg-teal-700',
-    children: [
-        { id: 'lights', label: 'Luces', icon: 'lightbulb', speechText: 'Por favor, cambia las luces.' },
-        { id: 'hot', label: 'Calor', icon: 'thermometer-sun', speechText: 'Tengo calor.' },
-        { id: 'cold', label: 'Frío', icon: 'thermometer-snowflake', speechText: 'Tengo frío.' },
-        { id: 'position', label: 'Posición', icon: 'bed', speechText: 'Necesito cambiar de posición.' },
-        { id: 'shower', label: 'Ducha', icon: 'shower-head', speechText: 'Quiero una ducha.' },
-    ]
-  },
-  {
-    id: 'emotions',
-    label: 'Emociones',
-    icon: 'heart',
-    color: 'bg-pink-700',
-    children: [
-      { id: 'happy', label: 'Feliz', icon: 'smile', speechText: 'Estoy feliz.' },
-      { id: 'sad', label: 'Triste', icon: 'frown', speechText: 'Estoy triste.' },
-      { id: 'love', label: 'Te quiero', icon: 'heart', speechText: 'Te quiero.' },
-    ]
-  },
-  {
-    id: 'activities',
-    label: 'Actividades',
-    icon: 'gamepad',
-    color: 'bg-purple-700',
-    children: [
-        { id: 'tv', label: 'TV', icon: 'tv', speechText: 'Quiero ver la televisión.' },
-        { id: 'music', label: 'Música', icon: 'music', speechText: 'Quiero escuchar música.' },
-        { id: 'read', label: 'Leer', icon: 'book', speechText: 'Quiero leer.' },
-    ]
-  },
-  {
-    id: 'people',
-    label: 'Gente',
-    icon: 'users',
-    color: 'bg-blue-700',
-    children: [
-        { id: 'doc', label: 'Médico', icon: 'stethoscope', speechText: 'Necesito un médico.' },
-        { id: 'nurse', label: 'Enfermera', icon: 'user', speechText: 'Necesito una enfermera.' },
-        { id: 'family', label: 'Familia', icon: 'users', speechText: 'Llama a mi familia.' },
-        { id: 'phone', label: 'Teléfono', icon: 'phone', speechText: '¿Puedo usar el teléfono?' },
-    ]
-  }
-];
+const COMMON_SPANISH: ServiceItem[] = [
+    {
+      id: 'emergency',
+      label: 'Emergencia',
+      icon: 'siren',
+      color: 'bg-red-600',
+      children: [
+        { id: 'pain_sev', label: 'Dolor Severo', speechText: 'Tengo un dolor severo.', icon: 'thermometer-sun', color: 'bg-red-500' },
+        { id: 'cant_breathe', label: 'No Respiro', speechText: 'Tengo problemas para respirar.', icon: 'fan', color: 'bg-red-500' },
+        { id: 'fall', label: 'Me Caí', speechText: 'Me he caído y necesito ayuda.', icon: 'alert-circle', color: 'bg-red-500' },
+        { id: 'suction_em', label: 'Succión', speechText: 'Necesito succión inmediatamente.', icon: 'stethoscope', color: 'bg-red-500' }
+      ]
+    },
+    {
+      id: 'needs',
+      label: 'Necesidades',
+      icon: 'coffee',
+      color: 'bg-blue-600',
+      children: [
+        { id: 'water', label: 'Agua', speechText: '¿Me puede dar agua por favor?', icon: 'glass-water' },
+        { id: 'food', label: 'Comida', speechText: 'Tengo hambre.', icon: 'utensils' },
+        { id: 'toilet', label: 'Baño', speechText: 'Necesito ir al baño.', icon: 'bath' },
+        { id: 'position', label: 'Posición', speechText: 'Por favor ayúdame a cambiar de posición.', icon: 'armchair' },
+        { id: 'cold', label: 'Frío', speechText: 'Tengo frío.', icon: 'thermometer-snowflake' },
+        { id: 'hot', label: 'Calor', speechText: 'Tengo calor.', icon: 'thermometer-sun' }
+      ]
+    },
+    {
+      id: 'social',
+      label: 'Social',
+      icon: 'users',
+      color: 'bg-purple-600',
+      children: [
+        { id: 'hello', label: 'Hola', speechText: 'Hola, qué bueno verte.', icon: 'message' },
+        { id: 'thanks', label: 'Gracias', speechText: 'Muchas gracias.', icon: 'thumbs-up' },
+        { id: 'yes', label: 'Sí', speechText: 'Sí, por favor.', icon: 'thumbs-up' },
+        { id: 'no', label: 'No', speechText: 'No, gracias.', icon: 'thumbs-down' },
+        { id: 'love', label: 'Te Quiero', speechText: 'Te quiero.', icon: 'heart' }
+      ]
+    },
+    {
+      id: 'activities',
+      label: 'Actividades',
+      icon: 'tv',
+      color: 'bg-amber-600',
+      children: [
+          { id: 'music', label: 'Música', speechText: 'Me gustaría escuchar música.', icon: 'music' },
+          { id: 'tv_c', label: 'TV', speechText: 'Por favor enciende la TV.', icon: 'tv' },
+          { id: 'lights', label: 'Luces', speechText: '¿Puedes ajustar las luces?', icon: 'lightbulb' }
+      ]
+    }
+  ];
 
-const COMMON_FRENCH = [
-  {
-    id: 'quick_res',
-    label: 'Chat Rapide',
-    icon: 'message',
-    color: 'bg-slate-600',
-    children: [
-      { id: 'yes', label: 'Oui', icon: 'thumbs-up', speechText: 'Oui.' },
-      { id: 'no', label: 'Non', icon: 'thumbs-down', speechText: 'Non.' },
-      { id: 'thanks', label: 'Merci', icon: 'smile', speechText: 'Merci.' },
-      { id: 'wait', label: 'Attends', icon: 'clock', speechText: 'Attends un moment.' },
-      { id: 'stop', label: 'Arrête', icon: 'stop', speechText: 'Arrête, s\'il te plaît.' },
-      { id: 'dont_know', label: 'Sais pas', icon: 'message', speechText: 'Je ne sais pas.' },
-    ]
-  },
-  {
-    id: 'food_drink',
-    label: 'Nourriture',
-    icon: 'utensils',
-    color: 'bg-orange-700',
-    children: [
-        { id: 'water', label: 'Eau', icon: 'glass-water', speechText: 'Je voudrais de l\'eau.' },
-        { id: 'coffee', label: 'Café', icon: 'coffee', speechText: 'Je voudrais du café.' },
-        { id: 'hungry', label: 'Faim', icon: 'utensils', speechText: 'J\'ai faim.' },
-        { id: 'thirsty', label: 'Soif', icon: 'droplets', speechText: 'J\'ai soif.' },
-    ]
-  },
-  {
-    id: 'emergency',
-    label: 'URGENCE',
-    icon: 'siren',
-    color: 'bg-red-700',
-    children: [
-      { id: 'help', label: 'AIDEZ-MOI', icon: 'alert-circle', speechText: 'Aidez-moi ! C\'est urgent !' },
-      { id: 'breath', label: 'Respirer', icon: 'wind', speechText: 'Je ne peux pas respirer.' },
-      { id: 'choke', label: 'J\'étouffe', icon: 'alert-circle', speechText: 'J\'étouffe.' },
-      { id: 'pain_sev', label: 'Douleur', icon: 'alert-circle', speechText: 'J\'ai très mal.' },
-      { id: 'fall', label: 'Je tombe', icon: 'alert-circle', speechText: 'Je sens que je tombe.' },
-    ]
-  },
-  {
-    id: 'comfort',
-    label: 'Confort',
-    icon: 'bed',
-    color: 'bg-teal-700',
-    children: [
-        { id: 'lights', label: 'Lumières', icon: 'lightbulb', speechText: 'Changez les lumières, s\'il vous plaît.' },
-        { id: 'hot', label: 'Chaud', icon: 'thermometer-sun', speechText: 'J\'ai trop chaud.' },
-        { id: 'cold', label: 'Froid', icon: 'thermometer-snowflake', speechText: 'J\'ai trop froid.' },
-        { id: 'position', label: 'Position', icon: 'bed', speechText: 'Je dois changer de position.' },
-        { id: 'shower', label: 'Douche', icon: 'shower-head', speechText: 'Je voudrais une douche.' },
-    ]
-  },
-  {
-    id: 'emotions',
-    label: 'Émotions',
-    icon: 'heart',
-    color: 'bg-pink-700',
-    children: [
-      { id: 'happy', label: 'Heureux', icon: 'smile', speechText: 'Je suis heureux.' },
-      { id: 'sad', label: 'Triste', icon: 'frown', speechText: 'Je suis triste.' },
-      { id: 'love', label: 'Je t\'aime', icon: 'heart', speechText: 'Je t\'aime.' },
-    ]
-  },
-  {
-    id: 'activities',
-    label: 'Activités',
-    icon: 'gamepad',
-    color: 'bg-purple-700',
-    children: [
-        { id: 'tv', label: 'TV', icon: 'tv', speechText: 'Je veux regarder la télé.' },
-        { id: 'music', label: 'Musique', icon: 'music', speechText: 'Je veux écouter de la musique.' },
-        { id: 'read', label: 'Lire', icon: 'book', speechText: 'Je veux lire.' },
-    ]
-  },
-  {
-    id: 'people',
-    label: 'Gens',
-    icon: 'users',
-    color: 'bg-blue-700',
-    children: [
-        { id: 'doc', label: 'Médecin', icon: 'stethoscope', speechText: 'J\'ai besoin d\'un médecin.' },
-        { id: 'nurse', label: 'Infirmier', icon: 'user', speechText: 'J\'ai besoin d\'un infirmier.' },
-        { id: 'family', label: 'Famille', icon: 'users', speechText: 'Appelez ma famille.' },
-        { id: 'phone', label: 'Téléphone', icon: 'phone', speechText: 'Je peux utiliser le téléphone ?' },
-    ]
-  }
-];
+const COMMON_FRENCH: ServiceItem[] = [
+    {
+      id: 'emergency',
+      label: 'Urgence',
+      icon: 'siren',
+      color: 'bg-red-600',
+      children: [
+        { id: 'pain_sev', label: 'Douleur Intense', speechText: 'J\'ai une douleur intense.', icon: 'thermometer-sun', color: 'bg-red-500' },
+        { id: 'cant_breathe', label: 'Respiration', speechText: 'J\'ai du mal à respirer.', icon: 'fan', color: 'bg-red-500' },
+        { id: 'fall', label: 'Je suis tombé', speechText: 'Je suis tombé, aidez-moi.', icon: 'alert-circle', color: 'bg-red-500' },
+        { id: 'suction_em', label: 'Aspiration', speechText: 'J\'ai besoin d\'une aspiration immédiate.', icon: 'stethoscope', color: 'bg-red-500' }
+      ]
+    },
+    {
+      id: 'needs',
+      label: 'Besoins',
+      icon: 'coffee',
+      color: 'bg-blue-600',
+      children: [
+        { id: 'water', label: 'Eau', speechText: 'Puis-je avoir de l\'eau ?', icon: 'glass-water' },
+        { id: 'food', label: 'Manger', speechText: 'J\'ai faim.', icon: 'utensils' },
+        { id: 'toilet', label: 'Toilette', speechText: 'Je dois aller aux toilettes.', icon: 'bath' },
+        { id: 'position', label: 'Position', speechText: 'Aidez-moi à changer de position.', icon: 'armchair' },
+        { id: 'cold', label: 'Froid', speechText: 'J\'ai froid.', icon: 'thermometer-snowflake' },
+        { id: 'hot', label: 'Chaud', speechText: 'J\'ai chaud.', icon: 'thermometer-sun' }
+      ]
+    },
+    {
+      id: 'social',
+      label: 'Social',
+      icon: 'users',
+      color: 'bg-purple-600',
+      children: [
+        { id: 'hello', label: 'Bonjour', speechText: 'Bonjour, ravi de vous voir.', icon: 'message' },
+        { id: 'thanks', label: 'Merci', speechText: 'Merci beaucoup.', icon: 'thumbs-up' },
+        { id: 'yes', label: 'Oui', speechText: 'Oui, s\'il vous plaît.', icon: 'thumbs-up' },
+        { id: 'no', label: 'Non', speechText: 'Non, merci.', icon: 'thumbs-down' },
+        { id: 'love', label: 'Je t\'aime', speechText: 'Je t\'aime.', icon: 'heart' }
+      ]
+    },
+    {
+      id: 'activities',
+      label: 'Activités',
+      icon: 'tv',
+      color: 'bg-amber-600',
+      children: [
+          { id: 'music', label: 'Musique', speechText: 'Je voudrais écouter de la musique.', icon: 'music' },
+          { id: 'tv_c', label: 'TV', speechText: 'Allumez la télé SVP.', icon: 'tv' },
+          { id: 'lights', label: 'Lumières', speechText: 'Pouvez-vous régler la lumière ?', icon: 'lightbulb' }
+      ]
+    }
+  ];
 
-const COMMON_JAPANESE = [
-  {
-    id: 'quick_res',
-    label: 'クイック',
-    icon: 'message',
-    color: 'bg-slate-600',
-    children: [
-      { id: 'yes', label: 'はい', icon: 'thumbs-up', speechText: 'はい。' },
-      { id: 'no', label: 'いいえ', icon: 'thumbs-down', speechText: 'いいえ。' },
-      { id: 'thanks', label: 'ありがとう', icon: 'smile', speechText: 'ありがとうございます。' },
-      { id: 'wait', label: '待って', icon: 'clock', speechText: '少し待ってください。' },
-      { id: 'stop', label: '止めて', icon: 'stop', speechText: '止めてください。' },
-      { id: 'dont_know', label: '不明', icon: 'message', speechText: '分かりません。' },
-    ]
-  },
-  {
-    id: 'food_drink',
-    label: '食事',
-    icon: 'utensils',
-    color: 'bg-orange-700',
-    children: [
-        { id: 'water', label: '水', icon: 'glass-water', speechText: 'お水をください。' },
-        { id: 'coffee', label: 'コーヒー', icon: 'coffee', speechText: 'コーヒーをください。' },
-        { id: 'hungry', label: '空腹', icon: 'utensils', speechText: 'お腹が空きました。' },
-        { id: 'thirsty', label: '喉乾いた', icon: 'droplets', speechText: '喉が乾きました。' },
-    ]
-  },
-  {
-    id: 'emergency',
-    label: '緊急',
-    icon: 'siren',
-    color: 'bg-red-700',
-    children: [
-      { id: 'help', label: '助けて', icon: 'alert-circle', speechText: '助けて！緊急です！' },
-      { id: 'breath', label: '呼吸', icon: 'wind', speechText: '息が苦しいです。' },
-      { id: 'choke', label: '詰まった', icon: 'alert-circle', speechText: '喉に詰まりました。' },
-      { id: 'pain_sev', label: '激痛', icon: 'alert-circle', speechText: 'ひどい痛みがあります。' },
-      { id: 'fall', label: '落ちる', icon: 'alert-circle', speechText: '落ちそうです。' },
-    ]
-  },
-  {
-    id: 'comfort',
-    label: '快適さ',
-    icon: 'bed',
-    color: 'bg-teal-700',
-    children: [
-        { id: 'lights', label: '電気', icon: 'lightbulb', speechText: '電気を変えてください。' },
-        { id: 'hot', label: '暑い', icon: 'thermometer-sun', speechText: '暑いです。' },
-        { id: 'cold', label: '寒い', icon: 'thermometer-snowflake', speechText: '寒いです。' },
-        { id: 'position', label: '体勢', icon: 'bed', speechText: '体勢を変えたいです。' },
-        { id: 'shower', label: 'シャワー', icon: 'shower-head', speechText: 'シャワーを浴びたいです。' },
-    ]
-  },
-  {
-    id: 'emotions',
-    label: '感情',
-    icon: 'heart',
-    color: 'bg-pink-700',
-    children: [
-      { id: 'happy', label: '嬉しい', icon: 'smile', speechText: '嬉しいです。' },
-      { id: 'sad', label: '悲しい', icon: 'frown', speechText: '悲しいです。' },
-      { id: 'love', label: '愛してる', icon: 'heart', speechText: '愛しています。' },
-    ]
-  },
-  {
-    id: 'activities',
-    label: '活動',
-    icon: 'gamepad',
-    color: 'bg-purple-700',
-    children: [
-        { id: 'tv', label: 'テレビ', icon: 'tv', speechText: 'テレビが見たいです。' },
-        { id: 'music', label: '音楽', icon: 'music', speechText: '音楽が聴きたいです。' },
-        { id: 'read', label: '読書', icon: 'book', speechText: '本が読みたいです。' },
-    ]
-  },
-  {
-    id: 'people',
-    label: '人',
-    icon: 'users',
-    color: 'bg-blue-700',
-    children: [
-        { id: 'doc', label: '医者', icon: 'stethoscope', speechText: 'お医者さんを呼んでください。' },
-        { id: 'nurse', label: '看護師', icon: 'user', speechText: '看護師さんを呼んでください。' },
-        { id: 'family', label: '家族', icon: 'users', speechText: '家族に連絡してください。' },
-        { id: 'phone', label: '電話', icon: 'phone', speechText: '電話を使ってもいいですか？' },
-    ]
-  }
-];
+const COMMON_JAPANESE: ServiceItem[] = [
+    {
+      id: 'emergency',
+      label: '緊急',
+      icon: 'siren',
+      color: 'bg-red-600',
+      children: [
+        { id: 'pain_sev', label: '激痛', speechText: '激しい痛みがあります。', icon: 'thermometer-sun', color: 'bg-red-500' },
+        { id: 'cant_breathe', label: '息苦しい', speechText: '息が苦しいです。', icon: 'fan', color: 'bg-red-500' },
+        { id: 'fall', label: '転倒', speechText: '転びました。助けてください。', icon: 'alert-circle', color: 'bg-red-500' },
+        { id: 'suction_em', label: '吸引', speechText: '吸引をお願いします。', icon: 'stethoscope', color: 'bg-red-500' }
+      ]
+    },
+    {
+      id: 'needs',
+      label: '生活',
+      icon: 'coffee',
+      color: 'bg-blue-600',
+      children: [
+        { id: 'water', label: '水', speechText: 'お水をください。', icon: 'glass-water' },
+        { id: 'food', label: '食事', speechText: 'お腹が空きました。', icon: 'utensils' },
+        { id: 'toilet', label: 'トイレ', speechText: 'トイレに行きたいです。', icon: 'bath' },
+        { id: 'position', label: '体勢', speechText: '体の向きを変えてください。', icon: 'armchair' },
+        { id: 'cold', label: '寒い', speechText: '寒いです。', icon: 'thermometer-snowflake' },
+        { id: 'hot', label: '暑い', speechText: '暑いです。', icon: 'thermometer-sun' }
+      ]
+    },
+    {
+      id: 'social',
+      label: '会話',
+      icon: 'users',
+      color: 'bg-purple-600',
+      children: [
+        { id: 'hello', label: 'こんにちは', speechText: 'こんにちは。', icon: 'message' },
+        { id: 'thanks', label: 'ありがとう', speechText: 'ありがとうございます。', icon: 'thumbs-up' },
+        { id: 'yes', label: 'はい', speechText: 'はい、お願いします。', icon: 'thumbs-up' },
+        { id: 'no', label: 'いいえ', speechText: 'いいえ、結構です。', icon: 'thumbs-down' },
+        { id: 'love', label: '大好き', speechText: '大好きです。', icon: 'heart' }
+      ]
+    },
+    {
+      id: 'activities',
+      label: '活動',
+      icon: 'tv',
+      color: 'bg-amber-600',
+      children: [
+          { id: 'music', label: '音楽', speechText: '音楽が聴きたいです。', icon: 'music' },
+          { id: 'tv_c', label: 'テレビ', speechText: 'テレビをつけてください。', icon: 'tv' },
+          { id: 'lights', label: '電気', speechText: '電気を調整してください。', icon: 'lightbulb' }
+      ]
+    }
+  ];
 
 export const SERVICE_TREES: Record<Language, ServiceItem[]> = {
   [Language.ENGLISH]: COMMON_ENGLISH,
@@ -636,42 +492,40 @@ export const SERVICE_TREES: Record<Language, ServiceItem[]> = {
 export const DEMO_SEQUENCE: DemoStep[] = [
   // 0:00 - Intro & Login
   { action: 'WAIT', delayAfter: 1500 }, 
-  { action: 'NARRATE', payload: "Hello, Chatty 3.0 is a complete communication suite for those with ALS, available entirely for free. Designed to work with any standard eye-tracking camera.", delayAfter: 200 },
+  { action: 'NARRATE', payload: "This is Hello Chatty 3.0. A completely free, multimodal communication interface designed to restore agency to those living with ALS. Whether using a mouse or a standard webcam for eye-tracking, our 'Dwell' interaction model eliminates the need for physical clicks, making communication effortless.", delayAfter: 200 },
   { action: 'SET_AUTH_VIEW', payload: 'LOGIN' },
   { action: 'WAIT', delayAfter: 800 },
   { action: 'SET_INPUT', payload: { email: 'demo@chatty.ai', password: 'demo123' } },
   { action: 'WAIT', delayAfter: 800 },
   { action: 'LOGIN' },
   
-  // 0:15 - Services Navigation (Drill Down)
+  // 0:20 - Services Navigation (Drill Down)
   { action: 'WAIT', delayAfter: 1000 },
-  { action: 'NARRATE', payload: "The Service Hub provides instant access to essential needs. Deep category trees allow users to drill down quickly without the fatigue of typing." },
-  { action: 'NAVIGATE_SERVICE_TREE', payload: 'emergency', delayAfter: 1200 }, // Click Emergency
-  { action: 'NAVIGATE_SERVICE_TREE', payload: 'pain_sev', delayAfter: 1000 }, // Click Severe Pain
-  { action: 'SPEAK_APP', payload: "I am in severe pain.", delayAfter: 1500 },
+  { action: 'NARRATE', payload: "The Services Hub organizes essential needs into deep, navigable hierarchies. Users can drill down from broad categories like 'Emergency' to specific needs like 'Severe Pain' in seconds, bypassing the fatigue of typing during critical moments." },
+  { action: 'NAVIGATE_SERVICE_TREE', payload: 'emergency', delayAfter: 1500 }, // Click Emergency
+  { action: 'NAVIGATE_SERVICE_TREE', payload: 'pain_sev', delayAfter: 1500 }, // Click Severe Pain
+  { action: 'SPEAK_APP', payload: "I am in severe pain.", delayAfter: 2000 },
 
-  // 0:35 - Services Customization (Add New)
-  { action: 'NAVIGATE', payload: 'SERVICES', delayAfter: 500 }, // Back to top
-  { action: 'NARRATE', payload: "The platform is fully extensible. Users can type any phrase to instantly add custom service buttons, adapting the interface to their specific daily life." },
-  { action: 'NAVIGATE', payload: 'KEYBOARD' }, // Go to type
-  { action: 'TYPE_KEYS', payload: "Play Music", delayAfter: 300 },
+  // 0:40 - Services Customization (Add New)
+  { action: 'NAVIGATE', payload: 'KEYBOARD', delayAfter: 1000 }, // Back to keyboard
+  { action: 'NARRATE', payload: "But every life is unique. That’s why Chatty is fully user-customizable. Simply type any phrase—like 'Play Jazz'—and instantly pin it to your Service board. The interface adapts to the user, not the other way around." },
+  { action: 'TYPE_KEYS', payload: "Play Jazz", delayAfter: 300 },
   { action: 'NAVIGATE', payload: 'SERVICES', delayAfter: 800 }, // Go back to services
-  { action: 'CLICK_ADD_SERVICE', delayAfter: 1000 }, // Click the "Add 'Play Music'" button
-  { action: 'NAVIGATE_SERVICE_TREE', payload: 'Play Music', delayAfter: 800 }, // Click the NEW button (by label)
-  { action: 'SPEAK_APP', payload: "Play Music", delayAfter: 1500 },
+  { action: 'CLICK_ADD_SERVICE', delayAfter: 1000 }, // Click the "Add 'Play Jazz'" button
+  { action: 'NAVIGATE_SERVICE_TREE', payload: 'Play Jazz', delayAfter: 1000 }, // Click the NEW button (by label)
+  { action: 'SPEAK_APP', payload: "Play Jazz", delayAfter: 1500 },
 
-  // 0:55 - Prediction
+  // 1:00 - Prediction (Contextual)
   { action: 'NAVIGATE', payload: 'KEYBOARD', delayAfter: 500 },
-  { action: 'NARRATE', payload: "For unique expression, our predictive engine anticipates intent, minimizing the eye movement required to construct complex sentences." },
-  { action: 'TYPE_KEYS', payload: "I w", delayAfter: 400 }, 
+  { action: 'NARRATE', payload: "For unique expression, we leverage Google Gemini. Unlike standard autocorrect, our predictive engine understands the context of your conversation. It anticipates your next thought, drastically reducing the eye movement required to construct complex sentences." },
+  { action: 'TYPE_KEYS', payload: "I am", delayAfter: 400 }, 
   { action: 'WAIT', delayAfter: 600 },
-  { action: 'CLICK_PREDICTION', payload: "would like", delayAfter: 800 },
-  { action: 'CLICK_PREDICTION', payload: "water", delayAfter: 800 },
-  { action: 'SPEAK_APP', payload: "I would like water.", delayAfter: 1500 },
+  { action: 'CLICK_PREDICTION', payload: "hungry", delayAfter: 1000 }, // Simulate user selecting hungry
+  { action: 'SPEAK_APP', payload: "I am hungry.", delayAfter: 1500 },
 
-  // 1:10 - Multilingual (Japanese)
+  // 1:20 - Multilingual (Japanese)
   { action: 'WAIT', delayAfter: 500 },
-  { action: 'NARRATE', payload: "Communication knows no borders. Hello Chatty features instant localization, adapting the interface and predictive models to languages like Spanish, French, and Japanese." },
+  { action: 'NARRATE', payload: "Communication knows no borders. Hello Chatty features instant localization, supporting languages like French, Spanish, and Japanese. It adapts the entire interface—including character sets and predictive models—to the user’s native tongue." },
   { action: 'SET_LANGUAGE', payload: Language.JAPANESE, delayAfter: 1500 }, // Switch to Japanese
   { action: 'MOCK_PREDICTIONS', payload: ["こんにちは", "ありがとう", "はい", "いいえ"] }, // Force prediction to exist
   { action: 'TYPE_KEYS', payload: "こ", delayAfter: 400 }, // Type "ko" -> "こ"
@@ -679,22 +533,14 @@ export const DEMO_SEQUENCE: DemoStep[] = [
   { action: 'SPEAK_APP', payload: "こんにちは", delayAfter: 1000 },
   { action: 'SET_LANGUAGE', payload: Language.ENGLISH, delayAfter: 500 }, // Switch back
 
-  // 1:30 - Vision
-  { action: 'OPEN_CAMERA', delayAfter: 2000 },
-  { action: 'NARRATE', payload: "With visual grounding, users can simply look at an object to generate relevant phrases, bridging the physical and digital worlds." },
-  { action: 'MOCK_CAMERA_ANALYSIS', delayAfter: 2000 },
-  { action: 'CLICK_PREDICTION', payload: "Is it hot?", delayAfter: 1000 },
-  { action: 'SPEAK_APP', payload: "Is it hot?", delayAfter: 1500 },
-
-  // 1:45 - Voice Banking (Settings)
+  // 1:40 - Voice Banking (Settings)
   { action: 'NAVIGATE', payload: 'SETTINGS' },
   { action: 'WAIT', delayAfter: 1000 },
-  { action: 'NARRATE', payload: "Most importantly, we preserve identity. Through our partnership with ALS Voice Bank and ElevenLabs, patients can bank their voice for free." },
+  { action: 'NARRATE', payload: "Most importantly, we preserve identity. Through our partnership with ElevenLabs, we offer free voice cloning. This ensures that when our users speak, they speak with their own voice, maintaining their self-expression forever." },
   // Simulate scrolling or highlighting voice clone section
   { action: 'WAIT', delayAfter: 3000 },
-  { action: 'NARRATE', payload: "Once cloned, the AI speaks with their unique intonation, preserving their self-expression forever." },
 
-  // 2:05 - Outro
+  // 2:00 - Outro
   { action: 'WAIT', delayAfter: 1000 },
   { action: 'NARRATE', payload: "Hello Chatty. Giving everyone a voice." },
   { action: 'WAIT', delayAfter: 2000 },
