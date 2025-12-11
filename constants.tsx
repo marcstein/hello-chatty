@@ -317,6 +317,43 @@ const COMMON_ENGLISH: ServiceItem[] = [
         { id: 'tv_c', label: 'TV', speechText: 'Please turn on the TV.', icon: 'tv' },
         { id: 'lights', label: 'Lights', speechText: 'Can you adjust the lights?', icon: 'lightbulb' }
     ]
+  },
+  {
+    id: 'feelings',
+    label: 'Feelings',
+    icon: 'smile',
+    color: 'bg-pink-600',
+    children: [
+      { id: 'happy', label: 'Happy', speechText: 'I am happy.', icon: 'smile', color: 'bg-pink-500' },
+      { id: 'sad', label: 'Sad', speechText: 'I am sad.', icon: 'thumbs-down', color: 'bg-pink-500' },
+      { id: 'tired', label: 'Tired', speechText: 'I am tired.', icon: 'moon', color: 'bg-pink-500' },
+      { id: 'anxious', label: 'Anxious', speechText: 'I feel anxious.', icon: 'alert-circle', color: 'bg-pink-500' },
+      { id: 'pain', label: 'In Pain', speechText: 'I am in pain.', icon: 'thermometer-sun', color: 'bg-pink-500' }
+    ]
+  },
+  {
+    id: 'people',
+    label: 'People',
+    icon: 'user',
+    color: 'bg-orange-600',
+    children: [
+      { id: 'family', label: 'Family', speechText: 'I want to see my family.', icon: 'users', color: 'bg-orange-500' },
+      { id: 'doctor', label: 'Doctor', speechText: 'I need a doctor.', icon: 'stethoscope', color: 'bg-orange-500' },
+      { id: 'nurse', label: 'Nurse', speechText: 'I need a nurse.', icon: 'pill', color: 'bg-orange-500' },
+      { id: 'caregiver', label: 'Caregiver', speechText: 'Where is my caregiver?', icon: 'user', color: 'bg-orange-500' }
+    ]
+  },
+  {
+    id: 'places',
+    label: 'Places',
+    icon: 'sun',
+    color: 'bg-teal-600',
+    children: [
+      { id: 'home', label: 'Home', speechText: 'I want to go home.', icon: 'armchair', color: 'bg-teal-500' },
+      { id: 'outside', label: 'Outside', speechText: 'I want to go outside.', icon: 'sun', color: 'bg-teal-500' },
+      { id: 'hospital', label: 'Hospital', speechText: 'Hospital.', icon: 'stethoscope', color: 'bg-teal-500' },
+      { id: 'bed_place', label: 'Bed', speechText: 'I want to go to bed.', icon: 'bed', color: 'bg-teal-500' }
+    ]
   }
 ];
 
@@ -370,7 +407,44 @@ const COMMON_SPANISH: ServiceItem[] = [
           { id: 'tv_c', label: 'TV', speechText: 'Por favor enciende la TV.', icon: 'tv' },
           { id: 'lights', label: 'Luces', speechText: '¿Puedes ajustar las luces?', icon: 'lightbulb' }
       ]
-    }
+    },
+    {
+        id: 'feelings',
+        label: 'Sentimientos',
+        icon: 'smile',
+        color: 'bg-pink-600',
+        children: [
+          { id: 'happy', label: 'Feliz', speechText: 'Estoy feliz.', icon: 'smile', color: 'bg-pink-500' },
+          { id: 'sad', label: 'Triste', speechText: 'Estoy triste.', icon: 'thumbs-down', color: 'bg-pink-500' },
+          { id: 'tired', label: 'Cansado', speechText: 'Estoy cansado.', icon: 'moon', color: 'bg-pink-500' },
+          { id: 'anxious', label: 'Ansioso', speechText: 'Me siento ansioso.', icon: 'alert-circle', color: 'bg-pink-500' },
+          { id: 'pain', label: 'Dolor', speechText: 'Tengo dolor.', icon: 'thermometer-sun', color: 'bg-pink-500' }
+        ]
+      },
+      {
+        id: 'people',
+        label: 'Gente',
+        icon: 'user',
+        color: 'bg-orange-600',
+        children: [
+          { id: 'family', label: 'Familia', speechText: 'Quiero ver a mi familia.', icon: 'users', color: 'bg-orange-500' },
+          { id: 'doctor', label: 'Doctor', speechText: 'Necesito un doctor.', icon: 'stethoscope', color: 'bg-orange-500' },
+          { id: 'nurse', label: 'Enfermera', speechText: 'Necesito una enfermera.', icon: 'pill', color: 'bg-orange-500' },
+          { id: 'caregiver', label: 'Cuidador', speechText: '¿Dónde está mi cuidador?', icon: 'user', color: 'bg-orange-500' }
+        ]
+      },
+      {
+        id: 'places',
+        label: 'Lugares',
+        icon: 'sun',
+        color: 'bg-teal-600',
+        children: [
+          { id: 'home', label: 'Casa', speechText: 'Quiero ir a casa.', icon: 'armchair', color: 'bg-teal-500' },
+          { id: 'outside', label: 'Afuera', speechText: 'Quiero salir.', icon: 'sun', color: 'bg-teal-500' },
+          { id: 'hospital', label: 'Hospital', speechText: 'Hospital.', icon: 'stethoscope', color: 'bg-teal-500' },
+          { id: 'bed_place', label: 'Cama', speechText: 'Quiero ir a la cama.', icon: 'bed', color: 'bg-teal-500' }
+        ]
+      }
   ];
 
 const COMMON_FRENCH: ServiceItem[] = [
@@ -423,7 +497,44 @@ const COMMON_FRENCH: ServiceItem[] = [
           { id: 'tv_c', label: 'TV', speechText: 'Allumez la télé SVP.', icon: 'tv' },
           { id: 'lights', label: 'Lumières', speechText: 'Pouvez-vous régler la lumière ?', icon: 'lightbulb' }
       ]
-    }
+    },
+    {
+        id: 'feelings',
+        label: 'Sentiments',
+        icon: 'smile',
+        color: 'bg-pink-600',
+        children: [
+          { id: 'happy', label: 'Heureux', speechText: 'Je suis heureux.', icon: 'smile', color: 'bg-pink-500' },
+          { id: 'sad', label: 'Triste', speechText: 'Je suis triste.', icon: 'thumbs-down', color: 'bg-pink-500' },
+          { id: 'tired', label: 'Fatigué', speechText: 'Je suis fatigué.', icon: 'moon', color: 'bg-pink-500' },
+          { id: 'anxious', label: 'Anxieux', speechText: 'Je suis anxieux.', icon: 'alert-circle', color: 'bg-pink-500' },
+          { id: 'pain', label: 'Douleur', speechText: 'J\'ai mal.', icon: 'thermometer-sun', color: 'bg-pink-500' }
+        ]
+      },
+      {
+        id: 'people',
+        label: 'Gens',
+        icon: 'user',
+        color: 'bg-orange-600',
+        children: [
+          { id: 'family', label: 'Famille', speechText: 'Je veux voir ma famille.', icon: 'users', color: 'bg-orange-500' },
+          { id: 'doctor', label: 'Docteur', speechText: 'J\'ai besoin d\'un médecin.', icon: 'stethoscope', color: 'bg-orange-500' },
+          { id: 'nurse', label: 'Infirmière', speechText: 'J\'ai besoin d\'une infirmière.', icon: 'pill', color: 'bg-orange-500' },
+          { id: 'caregiver', label: 'Soignant', speechText: 'Où est mon soignant ?', icon: 'user', color: 'bg-orange-500' }
+        ]
+      },
+      {
+        id: 'places',
+        label: 'Lieux',
+        icon: 'sun',
+        color: 'bg-teal-600',
+        children: [
+          { id: 'home', label: 'Maison', speechText: 'Je veux rentrer à la maison.', icon: 'armchair', color: 'bg-teal-500' },
+          { id: 'outside', label: 'Dehors', speechText: 'Je veux aller dehors.', icon: 'sun', color: 'bg-teal-500' },
+          { id: 'hospital', label: 'Hôpital', speechText: 'Hôpital.', icon: 'stethoscope', color: 'bg-teal-500' },
+          { id: 'bed_place', label: 'Lit', speechText: 'Je veux aller au lit.', icon: 'bed', color: 'bg-teal-500' }
+        ]
+      }
   ];
 
 const COMMON_JAPANESE: ServiceItem[] = [
@@ -476,7 +587,44 @@ const COMMON_JAPANESE: ServiceItem[] = [
           { id: 'tv_c', label: 'テレビ', speechText: 'テレビをつけてください。', icon: 'tv' },
           { id: 'lights', label: '電気', speechText: '電気を調整してください。', icon: 'lightbulb' }
       ]
-    }
+    },
+    {
+        id: 'feelings',
+        label: '気持ち',
+        icon: 'smile',
+        color: 'bg-pink-600',
+        children: [
+          { id: 'happy', label: '嬉しい', speechText: '嬉しいです。', icon: 'smile', color: 'bg-pink-500' },
+          { id: 'sad', label: '悲しい', speechText: '悲しいです。', icon: 'thumbs-down', color: 'bg-pink-500' },
+          { id: 'tired', label: '疲れた', speechText: '疲れました。', icon: 'moon', color: 'bg-pink-500' },
+          { id: 'anxious', label: '不安', speechText: '不安です。', icon: 'alert-circle', color: 'bg-pink-500' },
+          { id: 'pain', label: '痛い', speechText: '痛いです。', icon: 'thermometer-sun', color: 'bg-pink-500' }
+        ]
+      },
+      {
+        id: 'people',
+        label: '人',
+        icon: 'user',
+        color: 'bg-orange-600',
+        children: [
+          { id: 'family', label: '家族', speechText: '家族に会いたいです。', icon: 'users', color: 'bg-orange-500' },
+          { id: 'doctor', label: '医者', speechText: 'お医者さんをお願いします。', icon: 'stethoscope', color: 'bg-orange-500' },
+          { id: 'nurse', label: '看護師', speechText: '看護師さんをお願いします。', icon: 'pill', color: 'bg-orange-500' },
+          { id: 'caregiver', label: '介護者', speechText: '介護者の方はどこですか？', icon: 'user', color: 'bg-orange-500' }
+        ]
+      },
+      {
+        id: 'places',
+        label: '場所',
+        icon: 'sun',
+        color: 'bg-teal-600',
+        children: [
+          { id: 'home', label: '家', speechText: '家に帰りたいです。', icon: 'armchair', color: 'bg-teal-500' },
+          { id: 'outside', label: '外', speechText: '外に行きたいです。', icon: 'sun', color: 'bg-teal-500' },
+          { id: 'hospital', label: '病院', speechText: '病院。', icon: 'stethoscope', color: 'bg-teal-500' },
+          { id: 'bed_place', label: 'ベッド', speechText: 'ベッドに行きたいです。', icon: 'bed', color: 'bg-teal-500' }
+        ]
+      }
   ];
 
 export const SERVICE_TREES: Record<Language, ServiceItem[]> = {
