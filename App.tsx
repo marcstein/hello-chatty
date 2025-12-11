@@ -100,7 +100,7 @@ const AppContent: React.FC = () => {
   const [isEyeTrackerEnabled, setIsEyeTrackerEnabled] = useState(false);
   
   // Interaction Context
-  const { mode: interactionMode, setMode: setInteractionMode, dwellTimeMs, setDwellTimeMs } = useInteraction();
+  const { mode: interactionMode, setMode: setInteractionMode, dwellTimeMs, setDwellTimeMs, triggerNavigationLock } = useInteraction();
   
   // Settings Temporary State
   const [elVoiceId, setElVoiceId] = useState('');
@@ -141,6 +141,11 @@ const AppContent: React.FC = () => {
     };
     restoreSession();
   }, []);
+
+  // Watch for Screen/Mode changes to lock interaction (Prevent accidental clicks on new screens)
+  useEffect(() => {
+    triggerNavigationLock(1200); // Lock for 1.2s on major screen changes
+  }, [mode, authView, isLoginMode, currentServicePath]);
 
   useEffect(() => {
     if (currentUser?.settings?.elevenLabs) {
